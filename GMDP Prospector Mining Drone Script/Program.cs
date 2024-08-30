@@ -45,7 +45,7 @@ namespace IngameScript
         string retry_send_cmd = "retx";
 
         #endregion
-        string version = "V0.308";
+        string version = "V0.309";
         string drone_id_name = "";
         string tx_channel = "";
         string light_transmit_tag = "";
@@ -161,6 +161,7 @@ namespace IngameScript
                         }
                     }
                 }
+                antenna_all.Clear();
                 // find remote control block
                 gts.GetBlocksOfType<IMyRemoteControl>(remote_control_all, b => b.CubeGrid == Me.CubeGrid);
                 if (remote_control_all.Count > 0)
@@ -184,6 +185,7 @@ namespace IngameScript
                         }
                     }
                 }
+                remote_control_all.Clear();
                 //get camera for raycast distance to planet reglar for test
                 gts.GetBlocksOfType<IMyCameraBlock>(camera_all, b => b.CubeGrid == Me.CubeGrid);
                 if (camera_all.Count > 0)
@@ -207,6 +209,7 @@ namespace IngameScript
                         }
                     }
                 }
+                camera_all.Clear();
                 //populate array with batteries on grid(s) 
 
                 gts.GetBlocksOfType<IMyBatteryBlock>(batteries_all, b => b.CubeGrid == Me.CubeGrid);
@@ -231,6 +234,7 @@ namespace IngameScript
                         }
                     }
                 }
+                batteries_all.Clear();
                 // find remote control block
                 gts.GetBlocksOfType<IMyTextPanel>(lcd_all, b => b.CubeGrid == Me.CubeGrid);
                 if (lcd_all.Count > 0)
@@ -254,6 +258,7 @@ namespace IngameScript
                         }
                     }
                 }
+                lcd_all.Clear();
                 //populate light lists
 
                 gts.GetBlocksOfType<IMyLightingBlock>(lighting_all, b => b.CubeGrid == Me.CubeGrid);
@@ -285,6 +290,7 @@ namespace IngameScript
                         }
                     }
                 }
+                lighting_all.Clear();
                 //find sensors with tag
                 gts.GetBlocksOfType<IMySensorBlock>(sensor_all, b => b.CubeGrid == Me.CubeGrid);
                 if (sensor_all.Count > 0)
@@ -308,6 +314,7 @@ namespace IngameScript
                         }
                     }
                 }
+                sensor_all.Clear();
                 gts.GetBlocksOfType<IMyThrust>(thrust_all, b => b.CubeGrid == Me.CubeGrid);
                 if (thrust_all.Count > 0)
                 {
@@ -330,6 +337,7 @@ namespace IngameScript
                         }
                     }
                 }
+                thrust_all.Clear();
                 gts.GetBlocksOfType<IMyShipConnector>(connector_all, b => b.CubeGrid == Me.CubeGrid);
                 if (connector_all.Count > 0)
                 {
@@ -352,6 +360,7 @@ namespace IngameScript
                         }
                     }
                 }
+                connector_all.Clear();
                 setup_complete = true;
                 Echo("Setup complete!");
             }
