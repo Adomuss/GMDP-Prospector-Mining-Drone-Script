@@ -26,7 +26,7 @@ namespace IngameScript
     {
 
         //program start
-        //Mining controller spotter drone V0.310A
+        //Mining controller spotter drone V0.311A
         #region mdk preserve
         public Program()
         {
@@ -49,7 +49,7 @@ namespace IngameScript
 
         int lcd_display_index = 0; //used for devices with multiple screen panels (0+) 
         #endregion
-        string version = "V0.310";
+        string version = "V0.311";
         string drone_id_name = "";
         string tx_channel = "";
         string light_transmit_tag = "";
@@ -843,7 +843,7 @@ namespace IngameScript
             light_transmit_tag = "[" + scout_tag + " " + drone_id + " " + txl + "]";
             light_target_tag = "[" + scout_tag + " " + drone_id + " " + tgt + "]";
             lcd_display_name = "[" + scout_tag + " " + drone_id + " " + lcd_display_tag + "]";
-            Me.CustomName = $"Programmable Block {drone_id_name} [{drone_tag}] {prospC} {drone_id}";
+            Me.CustomName = $"GMDP Programmable Block {drone_id_name} [{drone_tag}] {prospC} {drone_id}";
         }
 
 
