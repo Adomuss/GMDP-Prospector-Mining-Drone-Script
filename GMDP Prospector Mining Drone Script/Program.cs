@@ -26,7 +26,7 @@ namespace IngameScript
     {
 
         //program start
-        //Mining controller spotter drone V0.311A
+        //Mining controller spotter drone V0.312A
         #region mdk preserve
         public Program()
         {
@@ -49,7 +49,7 @@ namespace IngameScript
 
         int lcd_display_index = 0; //used for devices with multiple screen panels (0+) 
         #endregion
-        string version = "V0.311";
+        string version = "V0.312";
         string drone_id_name = "";
         string tx_channel = "";
         string light_transmit_tag = "";
@@ -781,6 +781,7 @@ namespace IngameScript
                     else
                     {
                         temp_id_num = drone_id;
+                        drone_id = temp_id_num;
                         Echo($"Resorting to default ID#.{drone_id}");
                     }
                 }
@@ -795,6 +796,7 @@ namespace IngameScript
                 if (temp_id[1] != null)
                 {
                     temp_id_scout = temp_id[1];
+                    scout_tag = temp_id_scout;
                     if (temp_id_scout == "" || temp_id_scout == null)
                     {
                         temp_id_scout = scout_tag;
@@ -811,6 +813,7 @@ namespace IngameScript
                 if (temp_id[2] != null)
                 {
                     temp_id_name = temp_id[2];
+                    drone_tag = temp_id_name;
                     if (temp_id_name == "" || temp_id_name == null)
                     {
                         temp_id_name = drone_tag;
@@ -830,9 +833,9 @@ namespace IngameScript
                 temp_id_num = drone_id;
                 Echo($"Resorting to default config {temp_id_name} {temp_id_scout}.");
             }
-            drone_tag = temp_id_name;
-            scout_tag = temp_id_scout;
-            drone_id = temp_id_num;
+            
+            
+            
             if (antenna_all[index] != null)
             {
                 antenna_all[index].CustomData = $"{drone_id}:{scout_tag}:{drone_tag}";
