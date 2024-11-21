@@ -26,7 +26,7 @@ namespace IngameScript
     {
 
         //program start
-        //Mining controller spotter drone V0.312A
+        //Mining controller spotter drone V0.313A
         #region mdk preserve
         public Program()
         {
@@ -38,7 +38,7 @@ namespace IngameScript
         string scout_tag = "PSMD";
         string lcd_display_tag = "D1";
         double safe_position = 30.0;
-        double raycast_scan_distance = 32.0;
+        double raycast_scan_distance = 10.0;
         //statics        
         string scan_cmd = "scan";
         string reset_cmd = "reset";
@@ -49,7 +49,7 @@ namespace IngameScript
 
         int lcd_display_index = 0; //used for devices with multiple screen panels (0+) 
         #endregion
-        string version = "V0.312";
+        string version = "V0.313";
         string drone_id_name = "";
         string tx_channel = "";
         string light_transmit_tag = "";
