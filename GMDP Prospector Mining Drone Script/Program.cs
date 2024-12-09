@@ -26,7 +26,7 @@ namespace IngameScript
     {
 
         //program start
-        //Mining controller spotter drone V0.313A
+        //Mining controller spotter drone V0.314A
         #region mdk preserve
         public Program()
         {
@@ -37,8 +37,9 @@ namespace IngameScript
         string drone_tag = "SWRM_D";
         string scout_tag = "PSMD";
         string lcd_display_tag = "D1";
+        
         double safe_position = 30.0;
-        double raycast_scan_distance = 10.0;
+        double raycast_scan_distance = 32.0;
         //statics        
         string scan_cmd = "scan";
         string reset_cmd = "reset";
@@ -49,7 +50,7 @@ namespace IngameScript
 
         int lcd_display_index = 0; //used for devices with multiple screen panels (0+) 
         #endregion
-        string version = "V0.313";
+        string version = "V0.314";
         string drone_id_name = "";
         string tx_channel = "";
         string light_transmit_tag = "";
@@ -58,6 +59,7 @@ namespace IngameScript
         string txl = "TX";
         string tgt = "TGT";
         string prospC = "prospector";
+        string scan_camera = "scan";
         float t_stored_power;
         float stored_power_total;
         float t_max_power;
@@ -103,6 +105,7 @@ namespace IngameScript
         List<IMySensorBlock> sensor_tag;
         List<IMyCameraBlock> camera_all;
         List<IMyCameraBlock> camera_tag;
+        List<IMyCameraBlock> camera_scan;
         List<IMyLightingBlock> lighting_all;
         List<IMyLightingBlock> lighting_target_aquired;
         List<IMyLightingBlock> lighting_target_transmit;
@@ -139,6 +142,7 @@ namespace IngameScript
                 sensor_tag = new List<IMySensorBlock>();
                 camera_all = new List<IMyCameraBlock>();
                 camera_tag = new List<IMyCameraBlock>();
+                camera_scan = new List<IMyCameraBlock>();
                 lighting_all = new List<IMyLightingBlock>();
                 lighting_target_aquired = new List<IMyLightingBlock>();
                 lighting_target_transmit = new List<IMyLightingBlock>();
@@ -217,13 +221,15 @@ namespace IngameScript
                     for (int i = 0; i < camera_all.Count; i++)
                     {
                         //create new array from search array with containers matching tag
-                        if (camera_all[i].CustomName.Contains(drone_id_name))
+
+                        if (camera_all[i].CustomName.Contains(scan_camera))
                         {
                             n = $"Camera {(i + 1)}";
-                            camera_all[i].CustomName = n + " " + drone_id_name + " " + "[" + tx_channel + "]";
+                            camera_all[i].CustomName = n + " " + drone_id_name + " " + scan_camera + " "+ "[" + tx_channel + "]";
                             camera_tag.Add(camera_all[i]);
+                            camera_scan.Add(camera_all[i]);
                         }
-                        if (!camera_all[i].CustomName.Contains(drone_id_name))
+                        if (!camera_all[i].CustomName.Contains(scan_camera))
                         {
                             n = $"Camera {(i + 1)}";
                             camera_all[i].CustomName = n + " " + drone_id_name + " " + "[" + tx_channel + "]";
@@ -397,6 +403,7 @@ namespace IngameScript
             }
             antenna_actual = antenna_tag[0];
 
+
             if (display_tag_main.Count <= 0 || ((IMyTextSurfaceProvider)display_tag_main[0]).GetSurface(lcd_display_index) == null)
             {
                 Echo($"LCD display: '{lcd_display_tag}' not found.");
@@ -422,13 +429,13 @@ namespace IngameScript
 
 
             //find camera, end if not found
-            if (camera_tag.Count <= 0 || camera_tag[0] == null)
+            if (camera_scan.Count <= 0 || camera_scan[0] == null)
             {
-                Echo($"Camera with tag: '{drone_id_name}' not found.");
+                Echo($"Camera with tag: '{scan_camera}' not found.");
                 return;
             }
 
-            camera_actual = camera_tag[0];
+            camera_actual = camera_scan[0];
             camera_actual.EnableRaycast = true;
 
             //find batteries, end if not found
