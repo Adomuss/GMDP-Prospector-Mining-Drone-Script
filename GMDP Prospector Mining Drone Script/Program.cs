@@ -50,7 +50,7 @@ namespace IngameScript
 
         int lcd_display_index = 0; //used for devices with multiple screen panels (0+) 
         #endregion
-        string version = "V0.314";
+        string version = "V0.315";
         string drone_id_name = "";
         string tx_channel = "";
         string light_transmit_tag = "";
@@ -166,7 +166,7 @@ namespace IngameScript
                             drone_custom_data_check(checker, i);
                             if (drone_tag == "" || drone_tag == null)
                             {
-                                Echo($"Invalid name for drone_tag {drone_tag}");
+                                Echo($"Invalid name for drone_tag {drone_tag}. Please add drone tag to antenna e.g. '1:PSMD:SWRM_D', '<drone_id>:<prospector_drone_name>:<drone_group_tag>'");
                                 return;
                             }
                             n = $"Antenna {(i + 1)}";
@@ -179,7 +179,7 @@ namespace IngameScript
                             drone_custom_data_check(checker, i);
                             if (drone_tag == "" || drone_tag == null)
                             {
-                                Echo($"Invalid name for drone_tag {drone_tag}");
+                                Echo($"Invalid name for drone_tag {drone_tag} Please add drone tag to antenna e.g. '1:PSMD:SWRM_D', '<drone_id>:<prospector_drone_name>:<drone_group_tag>'");
                                 return;
                             }
                             n = $"Antenna {(i + 1)}";
@@ -228,6 +228,7 @@ namespace IngameScript
                             camera_all[i].CustomName = n + " " + drone_id_name + " " + scan_camera + " "+ "[" + tx_channel + "]";
                             camera_tag.Add(camera_all[i]);
                             camera_scan.Add(camera_all[i]);
+                            break;
                         }
                         if (!camera_all[i].CustomName.Contains(scan_camera))
                         {
