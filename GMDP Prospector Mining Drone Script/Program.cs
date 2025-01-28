@@ -26,7 +26,7 @@ namespace IngameScript
     {
 
         //program start
-        //Mining controller spotter drone V0.314A
+        //Mining controller spotter drone V0.315A
         #region mdk preserve
         public Program()
         {
