@@ -39,6 +39,7 @@ namespace IngameScript
         string lcd_display_tag = "D1";
         
         double safe_position = 30.0;
+        double free_center_position = 5000.0;
         double raycast_scan_distance = 32.0;
         //statics        
         string scan_cmd = "scan";
@@ -47,10 +48,14 @@ namespace IngameScript
         string ast_en_cmd = "asten";
         string ast_dis_cmd = "astdis";
         string retry_send_cmd = "retx";
+        string free_form_en_cmd = "freeen";
+        string free_form_dis_cmd = "freedis";
+        string up_val = "incrval";
+        string down_val = "decrval";
 
         int lcd_display_index = 0; //used for devices with multiple screen panels (0+) 
         #endregion
-        string version = "V0.315";
+        string version = "V0.316";
         string drone_id_name = "";
         string tx_channel = "";
         string light_transmit_tag = "";
@@ -72,6 +77,7 @@ namespace IngameScript
         bool surface_found = false;
         bool asteroidsDetected = false;
         bool transmit_complete = false;
+        bool free_form = false;
         bool enable_asteroid_detection;
         double distance_scan = 0.0;
         string data_out;
@@ -80,6 +86,9 @@ namespace IngameScript
         int temp_id_num;
         int stateshift = 0;
         string icon = "";
+        int scan_type = 0;
+        string scan_type_display = "";
+
 
         IMyRadioAntenna antenna_actual;
         IMySensorBlock sensor_actual;
@@ -92,6 +101,8 @@ namespace IngameScript
         Vector3D surface_coords;
         Vector3D target_coords;
         Vector3D asteroid_coords;
+        Vector3D camera_coords;
+        Vector3D free_centre_target_coords;
         Vector3D gravity;
         Vector3D TargetVec;
 
@@ -225,7 +236,7 @@ namespace IngameScript
                         if (camera_all[i].CustomName.Contains(scan_camera))
                         {
                             n = $"Camera {(i + 1)}";
-                            camera_all[i].CustomName = n + " " + drone_id_name + " " + scan_camera + " "+ "[" + tx_channel + "]";
+                            camera_all[i].CustomName = n + " " + drone_id_name + " " + scan_camera + " " + "[" + tx_channel + "]";
                             camera_tag.Add(camera_all[i]);
                             camera_scan.Add(camera_all[i]);
                             break;
@@ -293,16 +304,16 @@ namespace IngameScript
                             lighting_all[i].CustomName = $"{n} {light_transmit_tag} [{tx_channel}]";
                             lighting_target_transmit.Add(lighting_all[i]);
                             break;
-                        }                        
+                        }
                     }
                     for (int i = 0; i < lighting_all.Count; i++)
                     {
                         //create new array from search array with lights matching tag
-                        if (lighting_all[i].CustomName.Contains(light_target_tag)|| lighting_all[i].CustomName.Contains(tgt))
+                        if (lighting_all[i].CustomName.Contains(light_target_tag) || lighting_all[i].CustomName.Contains(tgt))
                         {
                             n = $"Interior light {(i + 1)}";
                             lighting_all[i].CustomName = $"{n} {light_target_tag} [{tx_channel}]";
-                            lighting_target_aquired.Add(lighting_all[i]);                        
+                            lighting_target_aquired.Add(lighting_all[i]);
                             break;
                         }
                     }
@@ -316,7 +327,7 @@ namespace IngameScript
                             {
                                 n = $"Interior light {(i + 1)}";
                                 lighting_all[i].CustomName = $"{n} {drone_id_name}";
-                                lighting_target_aquired.Add(lighting_all[i]);                             
+                                lighting_target_aquired.Add(lighting_all[i]);
                             }
                         }
                     }
@@ -525,6 +536,41 @@ namespace IngameScript
 
 
 
+            if (argument.Contains(up_val))
+            {
+                scan_type++;
+                if (scan_type > 2)
+                {
+                    scan_type = 0;
+                }
+            }
+            if (argument.Contains(down_val))
+            {
+                scan_type--;
+                if (scan_type < 0)
+                {
+                    scan_type = 2;
+                }
+            }
+
+            if (scan_type == 0)
+            {
+                scan_type_display = "Planetary";
+                enable_asteroid_detection = false;
+                free_form = false;
+            }
+            if (scan_type == 1)
+            {
+                scan_type_display = "Asteroid";
+                enable_asteroid_detection = true;
+                free_form = false;
+            }
+            if (scan_type == 2)
+            {
+                scan_type_display = "Free";
+                enable_asteroid_detection = false;
+                free_form = true;
+            }
             if (argument.Contains(reset_cmd))
             {
                 scan_complete = false;
@@ -563,9 +609,8 @@ namespace IngameScript
                     if (surface_found == true && scan_complete == false)
                     {
                         //check for asteroid
-                        //List<MyDetectedEntityInfo> asteroids = new List<MyDetectedEntityInfo>();
-                        // asteroids.Clear();
-                        //sensor_actual.DetectedEntities(asteroids);
+
+
                         if (sensor_actual.IsActive == true && enable_asteroid_detection == true)
                         {
                             asteroidsDetected = true;
@@ -577,7 +622,7 @@ namespace IngameScript
                             asteroidsDetected = false;
                         }
 
-                        if (asteroidsDetected == false)
+                        if (!asteroidsDetected && !free_form)
                         {
                             //set vector to gravity
                             gravity = remote_control_actual.GetNaturalGravity();
@@ -585,12 +630,28 @@ namespace IngameScript
                             Echo("align to gravity");
                         }
 
-                        if (asteroidsDetected == true)
+                        if (asteroidsDetected && !free_form)
                         {
                             //set vector to asteroid                           
                             asteroid_coords = sensor_actual.LastDetectedEntity.BoundingBox.Center;
                             TargetVec = Vector3D.Normalize(new Vector3D(-(asteroid_coords - surface_coords)));
                             Echo("align to asteroid");
+                        }
+
+                        if (free_form)
+                        {
+                            //set vector to asteroid                           
+                            camera_coords = camera_actual.GetPosition();
+                            TargetVec = Vector3D.Normalize(new Vector3D(-(surface_coords - camera_coords)));
+                            Echo("align to scan vector");
+                        }
+
+                        if (free_form)
+                        {
+                            Vector3D targetpositionc = TargetVec * -free_center_position;
+                            free_centre_target_coords.Y = Math.Round(surface_coords.Y + targetpositionc.Y, 2);
+                            free_centre_target_coords.X = Math.Round(surface_coords.X + targetpositionc.X, 2);
+                            free_centre_target_coords.Z = Math.Round(surface_coords.Z + targetpositionc.Z, 2);
                         }
 
                         Vector3D targetpositiont = TargetVec * safe_position;
@@ -637,6 +698,25 @@ namespace IngameScript
                 }
 
             }
+
+            if (argument.Contains(free_form_en_cmd))
+            {
+                if (free_form == false)
+                {
+                    free_form = true;
+                }
+
+            }
+
+            if (argument.Contains(free_form_dis_cmd))
+            {
+                if (free_form == true)
+                {
+                    free_form = false;
+                }
+
+            }
+
 
             if (argument.Contains(retry_send_cmd))
             {
@@ -712,6 +792,36 @@ namespace IngameScript
                     copy_asteroid.Append(":");
                     remote_control_actual.CustomData = copy_asteroid.ToString();
                 }
+
+                if (free_form == true)
+                {
+                    comms_out.Append("GPS");
+                    comms_out.Append(":");
+                    comms_out.Append("FRE");
+                    comms_out.Append(":");
+                    comms_out.Append(Math.Round(free_centre_target_coords.X, 2));
+                    comms_out.Append(":");
+                    comms_out.Append(Math.Round(free_centre_target_coords.Y, 2));
+                    comms_out.Append(":");
+                    comms_out.Append(Math.Round(free_centre_target_coords.Z, 2));
+                    comms_out.Append(":");
+                    comms_out.Append("#FF1551");
+                    comms_out.Append(":");
+
+                    copy_asteroid.Append("GPS");
+                    copy_asteroid.Append(":");
+                    copy_asteroid.Append("FRE");
+                    copy_asteroid.Append(":");
+                    copy_asteroid.Append(Math.Round(free_centre_target_coords.X, 2));
+                    copy_asteroid.Append(":");
+                    copy_asteroid.Append(Math.Round(free_centre_target_coords.Y, 2));
+                    copy_asteroid.Append(":");
+                    copy_asteroid.Append(Math.Round(free_centre_target_coords.Z, 2));
+                    copy_asteroid.Append(":");
+                    copy_asteroid.Append("#FF1551");
+                    copy_asteroid.Append(":");
+                    remote_control_actual.CustomData = copy_asteroid.ToString();
+                }
                 data_out = comms_out.ToString();
                 Me.CustomData = copy_target.ToString();
 
@@ -726,6 +836,7 @@ namespace IngameScript
             Echo($"Channel: {tx_channel}");
             Echo("Target: " + surface_found);
             Echo("TX: " + target_coords.X + " TY: " + target_coords.Y + " TZ: " + target_coords.Z + " SafeD: " + safe_position + "m");
+            Echo("Free scan: " + free_form);
             Echo("Asteroid detection: " + enable_asteroid_detection);
             Echo("Asteroid: " + asteroidsDetected);
             Echo("--------");
@@ -734,17 +845,30 @@ namespace IngameScript
             Echo($"Scan = {scan_cmd}");
             Echo($"Reset = {reset_cmd}");
             Echo($"Send  = {send_cmd}");
+            Echo($"Increase selection menu = {up_val}");
+            Echo($"Decrease selection menu = {down_val}");
+            Echo("--------");
+            Echo($"Direct commands:");
+            Echo("--------");
             Echo($"Asteroid EN = {ast_en_cmd}");
             Echo($"Asteroid DIS = {ast_dis_cmd}");
             Echo($"Reset send = {retry_send_cmd}");
+            Echo($"Free form EN = {free_form_en_cmd}");
+            Echo($"Free form DIS = {free_form_dis_cmd}");
+
             if (asteroidsDetected == true)
             {
                 Echo("AX: " + Math.Round(asteroid_coords.X, 2) + " AY: " + Math.Round(asteroid_coords.Y, 2) + " AZ: " + Math.Round(asteroid_coords.Z, 2));
             }
+            if (free_form == true && scan_complete)
+            {
+                Echo("FX: " + Math.Round(free_centre_target_coords.X, 2) + " FY: " + Math.Round(free_centre_target_coords.Y, 2) + " FZ: " + Math.Round(free_centre_target_coords.Z, 2));
+            }
+
             StringBuilder display_string = new StringBuilder();
             display_string.Append('\n');
             display_string.Append($"GMDP {version} Running {icon}");
-            display_string.Append('\n');            
+            display_string.Append('\n');
             display_string.Append($"Channel: {tx_channel}");
             display_string.Append('\n');
             display_string.Append('\n');
@@ -754,16 +878,34 @@ namespace IngameScript
             display_string.Append('\n');
             display_string.Append("Surface distance: " + safe_position + "m");
             display_string.Append('\n');
-            display_string.Append("Asteroid detection: " + enable_asteroid_detection);
             display_string.Append('\n');
-            display_string.Append("Asteroid: " + asteroidsDetected);
+            display_string.Append(">: Scan type: " + scan_type_display + " :<");
             display_string.Append('\n');
+            if (enable_asteroid_detection)
+            {
+                display_string.Append("Asteroid detection: " + enable_asteroid_detection);
+                display_string.Append('\n');
+            }
+            if (free_form)
+            {
+                display_string.Append("Free scan: " + free_form);
+                display_string.Append('\n');
+            }
+            if (enable_asteroid_detection)
+            {
+                display_string.Append("Asteroid: " + asteroidsDetected);
+                display_string.Append('\n');
+            }
             display_string.Append("Scan: " + scan_complete);
             display_string.Append('\n');
             display_string.Append("Transmit: " + transmit_complete);
             if (asteroidsDetected == true)
             {
                 display_string.Append("AX: " + Math.Round(asteroid_coords.X, 2) + " AY: " + Math.Round(asteroid_coords.Y, 2) + " AZ: " + Math.Round(asteroid_coords.Z, 2));
+            }
+            if (free_form && scan_complete)
+            {
+                display_string.Append("FX: " + Math.Round(free_centre_target_coords.X, 2) + " FY: " + Math.Round(free_centre_target_coords.Y, 2) + " FZ: " + Math.Round(free_centre_target_coords.Z, 2));
             }
             if (display_surface_1 != null)
             {
