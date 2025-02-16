@@ -27,7 +27,7 @@ namespace IngameScript
     {
 
         //program start
-        //Mining controller spotter drone V0.320A
+        //Mining controller spotter drone V0.321A
         #region mdk preserve
         public Program()
         {
@@ -66,7 +66,7 @@ namespace IngameScript
         int lcd_display_index_main = 0; //used for devices with multiple screen panels (0+) 
         int lcd_display_index_interface = 0; //used for devices with multiple screen panels (0+) 
         #endregion
-        string ver = "V0.320";
+        string ver = "V0.321";
         string drone_id_name = "";
         string tx_channel = "";
         string light_transmit_tag = "";
@@ -594,7 +594,7 @@ namespace IngameScript
                     item_line_5.Add("---");
                     item_line_6.Add("---");
                     item_line_7.Add("Cancel:");
-                    item_line_8.Add("Menu:");
+                    item_line_8.Add("Main Menu:");
                     item_line_9.Add("---");
                     item_line_10.Add("Confirm:");
 
@@ -607,7 +607,7 @@ namespace IngameScript
                     item_line_5.Add("---");
                     item_line_6.Add("---");
                     item_line_7.Add("---");
-                    item_line_8.Add("Menu:");
+                    item_line_8.Add("Main Menu:");
                     item_line_9.Add("---");
                     item_line_10.Add("Confirm:");
                     menu_level = 0;
