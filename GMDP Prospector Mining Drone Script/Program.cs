@@ -30,7 +30,7 @@ namespace IngameScript
         #region mdk preserve
         public Program()
         {
-            Runtime.UpdateFrequency = UpdateFrequency.Update10;
+            Runtime.UpdateFrequency = UpdateFrequency.Update100;
         }
 
         int drone_id = 1;
