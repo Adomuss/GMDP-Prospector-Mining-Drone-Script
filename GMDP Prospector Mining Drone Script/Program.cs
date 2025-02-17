@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Drawing;
 using System.Linq;
-using System.Runtime.ConstrainedExecution;
 using System.Text;
 using System.Text.RegularExpressions;
 using VRage;
@@ -27,7 +26,7 @@ namespace IngameScript
     {
 
         //program start
-        //Mining controller spotter drone V0.321A
+        //Mining controller spotter drone V0.322A
         #region mdk preserve
         public Program()
         {
@@ -66,7 +65,7 @@ namespace IngameScript
         int lcd_display_index_main = 0; //used for devices with multiple screen panels (0+) 
         int lcd_display_index_interface = 0; //used for devices with multiple screen panels (0+) 
         #endregion
-        string ver = "V0.321";
+        string ver = "V0.322";
         string drone_id_name = "";
         string tx_channel = "";
         string light_transmit_tag = "";
@@ -163,9 +162,13 @@ namespace IngameScript
         List<string> item_line_9;
         List<string> item_line_10;
         List<string> scroll_command_item;
+        List<string> scroll_command_item_2;
         int scroll_item_val = 0;
         int scroll_item_val_min_limit = 0;
         int scroll_item_val_max_limit = 2;
+        int scroll_item_val_2 = 0;
+        int scroll_item_val_min_limit_2 = 0;
+        int scroll_item_val_max_limit_2 = 3;
         string line_highlight_0 = "[ ]";
         string line_highlight_1 = "[ ]";
         string line_highlight_2 = "[ ]";
@@ -187,7 +190,8 @@ namespace IngameScript
         string cancel_display = "";
         string menu_display = "";
         string displayconfirm_1 = "";
-        string displayconfirm_2 = "";        
+        string displayconfirm_2 = "";
+        string displayconfirm_3 = "";
 
         bool item_up = false;
         bool item_down = false;
@@ -201,6 +205,9 @@ namespace IngameScript
         bool confirm_sel_1 = false;
         int temp_confirmval_2 = 0;
         bool confirm_sel_2 = false;
+        int temp_confirmval_3 = 0;
+        bool confirm_sel_3 = false;        
+
         bool confirm_send = false;
         bool confirm_command = false;
         int temp_menu = 0;        
@@ -212,6 +219,8 @@ namespace IngameScript
         int temp_scan_type = 0;
         int new_scan_type = 0;
         string new_scan_type_display = "";
+        int temp_command = 0;       
+        int interface_command = 0;
 
 
         int item_max_limit = 1;
@@ -564,6 +573,7 @@ namespace IngameScript
                     item_line_9 = new List<string>();
                     item_line_10 = new List<string>();
                     scroll_command_item = new List<string>();
+                    scroll_command_item_2 = new List<string>();
                     display_string_interface = new StringBuilder();
 
                     //scroll command item text                
@@ -572,10 +582,17 @@ namespace IngameScript
                     scroll_command_item.Add("Free Align");
                     scroll_command_item.Add("");
 
+                    //scroll command item text                
+                    scroll_command_item_2.Add("---");
+                    scroll_command_item_2.Add("Scan");
+                    scroll_command_item_2.Add("Send");
+                    scroll_command_item_2.Add("Reset");
+                    scroll_command_item_2.Add("");
+
                     //menu text - level 0
                     item_line_0.Add("Mining Job Configuration");
                     item_line_1.Add("Scan Alignment");
-                    item_line_2.Add("");
+                    item_line_2.Add("Command");
                     item_line_3.Add("");
                     item_line_4.Add("");
                     item_line_5.Add("");
@@ -607,6 +624,19 @@ namespace IngameScript
                     item_line_5.Add("---");
                     item_line_6.Add("---");
                     item_line_7.Add("---");
+                    item_line_8.Add("Main Menu:");
+                    item_line_9.Add("---");
+                    item_line_10.Add("Confirm:");
+
+                    //menu text - level 3
+                    item_line_0.Add("Command:");
+                    item_line_1.Add("---");
+                    item_line_2.Add("---");
+                    item_line_3.Add("---");
+                    item_line_4.Add("---");
+                    item_line_5.Add("---");
+                    item_line_6.Add("---");
+                    item_line_7.Add("Cancel:");
                     item_line_8.Add("Main Menu:");
                     item_line_9.Add("---");
                     item_line_10.Add("Confirm:");
@@ -646,6 +676,7 @@ namespace IngameScript
                     menu_level = 0;
                     item_number = 0;
                     scroll_item_val = 0;
+                    scroll_item_val_2 = 0;
                     iteration_val = 0;
                     argument = "";
                 }
@@ -655,6 +686,7 @@ namespace IngameScript
                     item_number = 0;
                     iteration_val = 0;
                     scroll_item_val = 0;
+                    scroll_item_val_2 = 0;
                     //Me.CustomData = "";
                     last_command = "";
                     argument = "";
@@ -718,6 +750,11 @@ namespace IngameScript
                             iteration_val = 0;
                             has_iterated = true;
                         }
+                    }
+                    if (menu_level == 3 && !has_iterated)
+                    {
+                        iteration_val = 0;
+                        has_iterated = true;
                     }
                     argument = "";
                 }
@@ -798,6 +835,26 @@ namespace IngameScript
                                 if (item_number == 10)
                                 {
                                     temp_confirmval_2++;
+                                }
+                                has_increased = true;
+                            }
+                            if (menu_level == 3 && !has_increased)
+                            {
+                                if (item_number == 0)
+                                {
+                                    incr_scoll_command_2();
+                                }
+                                if (item_number == 7)
+                                {
+                                    temp_cancel++;
+                                }
+                                if (item_number == 8)
+                                {
+                                    temp_menu++;
+                                }
+                                if (item_number == 10)
+                                {
+                                    temp_confirmval_3++;
                                 }
                                 has_increased = true;
                             }
@@ -1008,7 +1065,7 @@ namespace IngameScript
                             {
                                 if (item_number == 0)
                                 {
-                                    decr_scoll_command();
+                                    decr_scoll_command_2();
                                 }
                                 if (item_number == 7)
                                 {
@@ -1062,6 +1119,26 @@ namespace IngameScript
                                 }
                                 if (item_number == 10)
                                 {
+                                }
+                                has_decreased = true;
+                            }
+                            if (menu_level == 3 && !has_decreased)
+                            {
+                                if (item_number == 0)
+                                {
+                                    decr_scoll_command();
+                                }
+                                if (item_number == 7)
+                                {
+                                    temp_cancel--;
+                                }
+                                if (item_number == 8)
+                                {
+                                    temp_menu--;
+                                }
+                                if (item_number == 10)
+                                {
+                                    temp_confirmval_3--;
                                 }
                                 has_decreased = true;
                             }
@@ -1282,6 +1359,20 @@ namespace IngameScript
                         }
                     }
                 }
+                if (menu_level == 3)
+                {
+                    if (iteration_val >= 0)
+                    {
+                        if (item_number == 0)
+                        {
+                            iteration_view = "1";
+                        }
+                        if (item_number == 7 || item_number == 8 || item_number == 9 || item_number == 10)
+                        {
+                            iteration_view = "Yes/No";
+                        }
+                    }
+                }
 
                 if (menu_level == 2)
                 {
@@ -1435,7 +1526,7 @@ namespace IngameScript
                     {
                         if (item_number == 0)
                         {
-                            if(temp_scan_type != scan_type)
+                            if (temp_scan_type != scan_type)
                             {
                                 temp_scan_type = scan_type;
                             }
@@ -1460,6 +1551,18 @@ namespace IngameScript
                 }
                 if (argument.Contains("confirm"))
                 {
+                    if (menu_level == 0)
+                    {
+                        if (item_number == 2)
+                        {
+                            menu_level = 3;
+                            item_number = 0;
+                            argument = "";
+                        }
+                    }
+                }
+                if (argument.Contains("confirm"))
+                {
                     if (menu_level == 1)
                     {
 
@@ -1477,6 +1580,7 @@ namespace IngameScript
                             {
                                 scroll_item_val = 0;
                                 temp_menu = 0;
+                                last_command = "";
                             }
 
                             if (temp_menu == 0)
@@ -1555,6 +1659,64 @@ namespace IngameScript
                         }
                     }
                 }
+                if (argument.Contains("confirm"))
+                {
+                    if (menu_level == 3)
+                    {
+
+
+                        if (item_number == 10 && !confirm_sel_3)
+                        {
+                            item_number = 0;
+                            confirm_command = false;
+                            argument = "";
+                        }
+
+                        if (item_number == 10 && confirm_sel_3)
+                        {
+                            if (temp_cancel == 1)
+                            {
+                                scroll_item_val_2 = 0;
+                                temp_menu = 0;
+                                temp_command = 0;
+                                last_command = "";
+                            }
+
+                            if (temp_menu == 0)
+                            {
+                                command_resolver_2();
+                                last_command = disp_command;
+                                interface_command = temp_command;
+                                confirm_command = true;
+                                item_number = 0;
+                                scroll_item_val_2 = 0;
+                                temp_confirmval_3 = 0;
+                                temp_cancel = 0;
+                                confirm_sel_3 = false;
+                                temp_menu = 0;
+                                temp_command = 0;
+                                argument = "";
+                            }
+                            if (temp_menu == 1)
+                            {
+                                scroll_item_val = 0;
+                                temp_menu = 0;
+                                menu_level = 0;
+                                confirm_command = true;
+                                item_number = 0;
+                                scroll_item_val_2 = 0;
+                                temp_confirmval_3 = 0;
+                                temp_cancel = 0;
+                                confirm_sel_3 = false;
+                                interface_command = 0;
+                                temp_command = 0;
+                                last_command = disp_command;
+                                argument = "";
+                            }
+
+                        }
+                    }
+                }
 
 
                 if (argument.Contains("confirm"))
@@ -1598,6 +1760,40 @@ namespace IngameScript
                         if (item_number >= 0 && item_number <= 10)
                         {
                             incr_item();
+                            argument = "";
+                        }
+                    }
+                }
+                if (argument.Contains("confirm"))
+                {
+                    // if menu is command configuration
+                    if (menu_level == 3)
+                    {
+                        if (item_number == 0)
+                        {
+                            item_number = 7;
+                            argument = "";
+                        }
+                    }
+                }
+                if (argument.Contains("confirm"))
+                {
+                    if (menu_level == 3)
+                    {
+                        if (item_number == 7)
+                        {
+                            item_number = 8;
+                            argument = "";
+                        }
+                    }
+                }
+                if (argument.Contains("confirm"))
+                {
+                    if (menu_level == 3)
+                    {
+                        if (item_number == 8)
+                        {
+                            item_number = 10;
                             argument = "";
                         }
                     }
@@ -1676,7 +1872,7 @@ namespace IngameScript
             }
 
             new_scan_type = temp_scan_type;
-            
+
             if (new_scan_type > 2)
             {
                 new_scan_type = 0;
@@ -1685,6 +1881,17 @@ namespace IngameScript
             {
                 new_scan_type = 2;
             }
+
+            if (temp_command > 3)
+            {
+                temp_command = 0;
+            }
+            if (temp_command < 0)
+            {
+                temp_command = 3;
+            }
+
+
 
 
             //cancel management
@@ -1758,6 +1965,23 @@ namespace IngameScript
                 confirm_sel_2 = false;
             }
 
+            if (temp_confirmval_3 < 0)
+            {
+                temp_confirmval_3 = 1;
+            }
+            if (temp_confirmval_3 > 1)
+            {
+                temp_confirmval_3 = 0;
+            }
+            if (temp_confirmval_3 == 1)
+            {
+                confirm_sel_3 = true;
+            }
+            if (temp_confirmval_3 == 0)
+            {
+                confirm_sel_3 = false;
+            }
+
 
             //item menu display
             if (new_scan_type == 0)
@@ -1772,445 +1996,461 @@ namespace IngameScript
             {
                 new_scan_type_display = "Free Align";
             }
-
-
-            //confirm display
-            if (confirm_sel_1)
-            {
-                displayconfirm_1 = "Yes";
-            }
-            if (!confirm_sel_1)
-            {
-                displayconfirm_1 = "No";
-            }
-            if (confirm_sel_2)
-            {
-                displayconfirm_2 = "Yes";
-            }
-            if (!confirm_sel_2)
-            {
-                displayconfirm_2 = "No";
-            }
-            #endregion
-
-
-
-            #region direct_command_management
-            //command management
-            if (argument == "setup" && setup_complete)
-            {
-                setup_complete = false;
-                interface_setup_complete = false;
-                argument = "";
-                Echo("Running setup...");
-            }
-            if (argument.Contains(reset_cmd))
-            {
-                scan_complete = false;
-                Echo("Scan reset.");
-                transmit_complete = false;
-                Echo("Transmission reset.");
-                target_aquired_light_actual.Enabled = false;
-                target_transmit_light_actual.Enabled = false;
-            }
-
-            //aligment mode management
-            if (argument.Contains(ast_dis_cmd))
-            {
-                if (enable_asteroid_detection == true)
+            
+                //confirm display
+                if (confirm_sel_1)
                 {
-                    enable_asteroid_detection = false;
+                    displayconfirm_1 = "Yes";
                 }
-
-            }
-
-            if (argument.Contains(ast_en_cmd))
-            {
-                if (enable_asteroid_detection == false)
+                if (!confirm_sel_1)
                 {
-                    enable_asteroid_detection = true;
+                    displayconfirm_1 = "No";
                 }
-
-            }
-
-            if (argument.Contains(free_form_en_cmd))
-            {
-                if (free_form == false)
+                if (confirm_sel_2)
                 {
-                    free_form = true;
+                    displayconfirm_2 = "Yes";
                 }
-
-            }
-
-            if (argument.Contains(free_form_dis_cmd))
-            {
-                if (free_form == true)
+                if (!confirm_sel_2)
                 {
-                    free_form = false;
+                    displayconfirm_2 = "No";
                 }
-
-            }
-
-
-            if (argument.Contains(retry_send_cmd))
-            {
-                if (transmit_complete == true)
+                if (confirm_sel_3)
                 {
+                    displayconfirm_3 = "Yes";
+                }
+                if (!confirm_sel_3)
+                {
+                    displayconfirm_3 = "No";
+                }
+                #endregion
+
+
+
+                #region direct_command_management
+                //command management
+                if (argument == "setup" && setup_complete)
+                {
+                    interface_command = 0;
+                    scroll_item_val_2 = 0;
+                    setup_complete = false;
+                    interface_setup_complete = false;
+                    argument = "";
+                    Echo("Running setup...");
+                }
+                if (argument.Contains(reset_cmd) || interface_command == 3)
+                {
+                    interface_command = 0;
+                    scroll_item_val_2 = 0;
+                    scan_complete = false;
+                    Echo("Scan reset.");
                     transmit_complete = false;
-                }
-
-            }
-            #endregion
-
-            #region scan_command_management
-            if (scan_type == 0)
-            {
-                scan_type_display = "Planetary";
-                enable_asteroid_detection = false;
-                free_form = false;
-            }
-            if (scan_type == 1)
-            {
-                scan_type_display = "Asteroid";
-                enable_asteroid_detection = true;
-                free_form = false;
-            }
-            if (scan_type == 2)
-            {
-                scan_type_display = "Free Align";
-                enable_asteroid_detection = false;
-                free_form = true;
-            }
-            if (argument.Contains(scan_cmd))
-            {
-
-                if (scan_complete == false)
-                {
-                    MyDetectedEntityInfo hitinfocamera = camera_actual.Raycast(raycast_scan_distance);
-                    if (hitinfocamera.IsEmpty())
-                    {
-                        Echo($"Mining surface not found within: '{raycast_scan_distance}'m.");
-                        surface_coords.X = remote_control_actual.GetPosition().X;
-                        surface_coords.Z = remote_control_actual.GetPosition().Y;
-                        surface_coords.Y = remote_control_actual.GetPosition().Z;
-                        surface_found = false;
-                    }
-
-                    if (!hitinfocamera.IsEmpty())
-                    {
-                        distance_scan = (hitinfocamera.HitPosition.Value - camera_actual.GetPosition()).Length();
-                        Echo($"Surface found'{distance_scan}'m.");
-                        surface_coords.X = hitinfocamera.HitPosition.Value.X;
-                        surface_coords.Y = hitinfocamera.HitPosition.Value.Y;
-                        surface_coords.Z = hitinfocamera.HitPosition.Value.Z;
-                        surface_found = true;
-                    }
-
-                    if (surface_found == true && scan_complete == false)
-                    {
-                        //check for asteroid
-
-
-                        if (sensor_actual.IsActive == true && enable_asteroid_detection == true)
-                        {
-                            asteroidsDetected = true;
-                            Echo("Asteroid detected");
-                        }
-
-                        if (sensor_actual.IsActive == false && enable_asteroid_detection == true || enable_asteroid_detection == false)
-                        {
-                            asteroidsDetected = false;
-                        }
-
-                        if (!asteroidsDetected && !free_form)
-                        {
-                            //set vector to gravity
-                            gravity = remote_control_actual.GetNaturalGravity();
-                            TargetVec = Vector3D.Normalize(new Vector3D(-gravity));
-                            Echo("align to gravity");
-                        }
-
-                        if (asteroidsDetected && !free_form)
-                        {
-                            //set vector to asteroid                           
-                            asteroid_coords = sensor_actual.LastDetectedEntity.BoundingBox.Center;
-                            TargetVec = Vector3D.Normalize(new Vector3D(-(asteroid_coords - surface_coords)));
-                            Echo("align to asteroid");
-                        }
-
-                        if (free_form)
-                        {
-                            //set vector to asteroid                           
-                            camera_coords = camera_actual.GetPosition();
-                            TargetVec = Vector3D.Normalize(new Vector3D(-(surface_coords - camera_coords)));
-                            Echo("align to scan vector");
-                        }
-
-                        if (free_form)
-                        {
-                            Vector3D targetpositionc = TargetVec * -free_center_position;
-                            free_centre_target_coords.Y = Math.Round(surface_coords.Y + targetpositionc.Y, 2);
-                            free_centre_target_coords.X = Math.Round(surface_coords.X + targetpositionc.X, 2);
-                            free_centre_target_coords.Z = Math.Round(surface_coords.Z + targetpositionc.Z, 2);
-                        }
-
-                        Vector3D targetpositiont = TargetVec * safe_position;
-                        target_coords.Y = Math.Round(surface_coords.Y + targetpositiont.Y, 2);
-                        target_coords.X = Math.Round(surface_coords.X + targetpositiont.X, 2);
-                        target_coords.Z = Math.Round(surface_coords.Z + targetpositiont.Z, 2);
-                        Echo("Navigation point calculated");
-                        Echo("Coordinates ready.");
-
-                        scan_complete = true;
-
-                        target_aquired_light_actual.Enabled = true;
-                        target_transmit_light_actual.Enabled = false;
-
-                    } // surface found
-
-                } // scan complete
-
-                if (scan_complete == false)
-                {
-                    Echo("Please initiate scan before sending coordinates to controller");
-                    transmit_complete = false;
+                    Echo("Transmission reset.");
                     target_aquired_light_actual.Enabled = false;
                     target_transmit_light_actual.Enabled = false;
                 }
 
-            }
-            #endregion
-
-            #region transmission_management
-
-            if (argument.Contains(send_cmd) && scan_complete == true && transmit_complete == false)
-            {
-                StringBuilder comms_out = new StringBuilder();
-                StringBuilder copy_target = new StringBuilder();
-                StringBuilder copy_asteroid = new StringBuilder();
-                comms_out.Append("GPS");
-                comms_out.Append(":");
-                comms_out.Append("TGT");
-                comms_out.Append(":");
-                comms_out.Append(target_coords.X);
-                comms_out.Append(":");
-                comms_out.Append(target_coords.Y);
-                comms_out.Append(":");
-                comms_out.Append(target_coords.Z);
-                comms_out.Append(":");
-                comms_out.Append("#FF75C9F1");
-                comms_out.Append(":");
-                comms_out.Append(safe_position);
-                comms_out.Append(":");
-
-                copy_target.Append("GPS");
-                copy_target.Append(":");
-                copy_target.Append("TGT");
-                copy_target.Append(":");
-                copy_target.Append(target_coords.X);
-                copy_target.Append(":");
-                copy_target.Append(target_coords.Y);
-                copy_target.Append(":");
-                copy_target.Append(target_coords.Z);
-                copy_target.Append(":");
-                copy_target.Append("#FF75C9F1");
-                copy_target.Append(":");
-
-                if (asteroidsDetected == true)
+                //aligment mode management
+                if (argument.Contains(ast_dis_cmd))
                 {
-                    comms_out.Append("GPS");
-                    comms_out.Append(":");
-                    comms_out.Append("AST");
-                    comms_out.Append(":");
-                    comms_out.Append(Math.Round(asteroid_coords.X, 2));
-                    comms_out.Append(":");
-                    comms_out.Append(Math.Round(asteroid_coords.Y, 2));
-                    comms_out.Append(":");
-                    comms_out.Append(Math.Round(asteroid_coords.Z, 2));
-                    comms_out.Append(":");
-                    comms_out.Append("#FF1551");
-                    comms_out.Append(":");
+                    if (enable_asteroid_detection == true)
+                    {
+                        enable_asteroid_detection = false;
+                    }
 
-                    copy_asteroid.Append("GPS");
-                    copy_asteroid.Append(":");
-                    copy_asteroid.Append("AST");
-                    copy_asteroid.Append(":");
-                    copy_asteroid.Append(Math.Round(asteroid_coords.X, 2));
-                    copy_asteroid.Append(":");
-                    copy_asteroid.Append(Math.Round(asteroid_coords.Y, 2));
-                    copy_asteroid.Append(":");
-                    copy_asteroid.Append(Math.Round(asteroid_coords.Z, 2));
-                    copy_asteroid.Append(":");
-                    copy_asteroid.Append("#FF1551");
-                    copy_asteroid.Append(":");
-                    remote_control_actual.CustomData = copy_asteroid.ToString();
                 }
 
-                if (free_form == true)
+                if (argument.Contains(ast_en_cmd))
                 {
+                    if (enable_asteroid_detection == false)
+                    {
+                        enable_asteroid_detection = true;
+                    }
+
+                }
+
+                if (argument.Contains(free_form_en_cmd))
+                {
+                    if (free_form == false)
+                    {
+                        free_form = true;
+                    }
+
+                }
+
+                if (argument.Contains(free_form_dis_cmd))
+                {
+                    if (free_form == true)
+                    {
+                        free_form = false;
+                    }
+
+                }
+
+
+                if (argument.Contains(retry_send_cmd))
+                {
+                    if (transmit_complete == true)
+                    {
+                        transmit_complete = false;
+                    }
+
+                }
+                #endregion
+
+                #region scan_command_management
+                if (scan_type == 0)
+                {
+                    scan_type_display = "Planetary";
+                    enable_asteroid_detection = false;
+                    free_form = false;
+                }
+                if (scan_type == 1)
+                {
+                    scan_type_display = "Asteroid";
+                    enable_asteroid_detection = true;
+                    free_form = false;
+                }
+                if (scan_type == 2)
+                {
+                    scan_type_display = "Free Align";
+                    enable_asteroid_detection = false;
+                    free_form = true;
+                }
+                if (argument.Contains(scan_cmd) || interface_command == 1)
+                {
+                    interface_command = 0;
+                    scroll_item_val_2 = 0;
+                    if (scan_complete == false)
+                    {
+                        MyDetectedEntityInfo hitinfocamera = camera_actual.Raycast(raycast_scan_distance);
+                        if (hitinfocamera.IsEmpty())
+                        {
+                            Echo($"Mining surface not found within: '{raycast_scan_distance}'m.");
+                            surface_coords.X = remote_control_actual.GetPosition().X;
+                            surface_coords.Z = remote_control_actual.GetPosition().Y;
+                            surface_coords.Y = remote_control_actual.GetPosition().Z;
+                            surface_found = false;
+                        }
+
+                        if (!hitinfocamera.IsEmpty())
+                        {
+                            distance_scan = (hitinfocamera.HitPosition.Value - camera_actual.GetPosition()).Length();
+                            Echo($"Surface found'{distance_scan}'m.");
+                            surface_coords.X = hitinfocamera.HitPosition.Value.X;
+                            surface_coords.Y = hitinfocamera.HitPosition.Value.Y;
+                            surface_coords.Z = hitinfocamera.HitPosition.Value.Z;
+                            surface_found = true;
+                        }
+
+                        if (surface_found == true && scan_complete == false)
+                        {
+                            //check for asteroid
+
+
+                            if (sensor_actual.IsActive == true && enable_asteroid_detection == true)
+                            {
+                                asteroidsDetected = true;
+                                Echo("Asteroid detected");
+                            }
+
+                            if (sensor_actual.IsActive == false && enable_asteroid_detection == true || enable_asteroid_detection == false)
+                            {
+                                asteroidsDetected = false;
+                            }
+
+                            if (!asteroidsDetected && !free_form)
+                            {
+                                //set vector to gravity
+                                gravity = remote_control_actual.GetNaturalGravity();
+                                TargetVec = Vector3D.Normalize(new Vector3D(-gravity));
+                                Echo("align to gravity");
+                            }
+
+                            if (asteroidsDetected && !free_form)
+                            {
+                                //set vector to asteroid                           
+                                asteroid_coords = sensor_actual.LastDetectedEntity.BoundingBox.Center;
+                                TargetVec = Vector3D.Normalize(new Vector3D(-(asteroid_coords - surface_coords)));
+                                Echo("align to asteroid");
+                            }
+
+                            if (free_form)
+                            {
+                                //set vector to asteroid                           
+                                camera_coords = camera_actual.GetPosition();
+                                TargetVec = Vector3D.Normalize(new Vector3D(-(surface_coords - camera_coords)));
+                                Echo("align to scan vector");
+                            }
+
+                            if (free_form)
+                            {
+                                Vector3D targetpositionc = TargetVec * -free_center_position;
+                                free_centre_target_coords.Y = Math.Round(surface_coords.Y + targetpositionc.Y, 2);
+                                free_centre_target_coords.X = Math.Round(surface_coords.X + targetpositionc.X, 2);
+                                free_centre_target_coords.Z = Math.Round(surface_coords.Z + targetpositionc.Z, 2);
+                            }
+
+                            Vector3D targetpositiont = TargetVec * safe_position;
+                            target_coords.Y = Math.Round(surface_coords.Y + targetpositiont.Y, 2);
+                            target_coords.X = Math.Round(surface_coords.X + targetpositiont.X, 2);
+                            target_coords.Z = Math.Round(surface_coords.Z + targetpositiont.Z, 2);
+                            Echo("Navigation point calculated");
+                            Echo("Coordinates ready.");
+
+                            scan_complete = true;
+
+                            target_aquired_light_actual.Enabled = true;
+                            target_transmit_light_actual.Enabled = false;
+
+                        } // surface found
+
+                    } // scan complete
+
+                    if (scan_complete == false)
+                    {
+                        Echo("Please initiate scan before sending coordinates to controller");
+                        transmit_complete = false;
+                        target_aquired_light_actual.Enabled = false;
+                        target_transmit_light_actual.Enabled = false;
+                    }
+
+                }
+                #endregion
+
+                #region transmission_management
+
+                if (argument.Contains(send_cmd) && scan_complete && !transmit_complete || interface_command == 2 && scan_complete && !transmit_complete)
+                {
+                    interface_command = 0;
+                    scroll_item_val_2 = 0;
+                    StringBuilder comms_out = new StringBuilder();
+                    StringBuilder copy_target = new StringBuilder();
+                    StringBuilder copy_asteroid = new StringBuilder();
                     comms_out.Append("GPS");
                     comms_out.Append(":");
-                    comms_out.Append("FRE");
+                    comms_out.Append("TGT");
                     comms_out.Append(":");
-                    comms_out.Append(Math.Round(free_centre_target_coords.X, 2));
+                    comms_out.Append(target_coords.X);
                     comms_out.Append(":");
-                    comms_out.Append(Math.Round(free_centre_target_coords.Y, 2));
+                    comms_out.Append(target_coords.Y);
                     comms_out.Append(":");
-                    comms_out.Append(Math.Round(free_centre_target_coords.Z, 2));
+                    comms_out.Append(target_coords.Z);
                     comms_out.Append(":");
-                    comms_out.Append("#FF1551");
+                    comms_out.Append("#FF75C9F1");
+                    comms_out.Append(":");
+                    comms_out.Append(safe_position);
                     comms_out.Append(":");
 
-                    copy_asteroid.Append("GPS");
-                    copy_asteroid.Append(":");
-                    copy_asteroid.Append("FRE");
-                    copy_asteroid.Append(":");
-                    copy_asteroid.Append(Math.Round(free_centre_target_coords.X, 2));
-                    copy_asteroid.Append(":");
-                    copy_asteroid.Append(Math.Round(free_centre_target_coords.Y, 2));
-                    copy_asteroid.Append(":");
-                    copy_asteroid.Append(Math.Round(free_centre_target_coords.Z, 2));
-                    copy_asteroid.Append(":");
-                    copy_asteroid.Append("#FF1551");
-                    copy_asteroid.Append(":");
-                    remote_control_actual.CustomData = copy_asteroid.ToString();
+                    copy_target.Append("GPS");
+                    copy_target.Append(":");
+                    copy_target.Append("TGT");
+                    copy_target.Append(":");
+                    copy_target.Append(target_coords.X);
+                    copy_target.Append(":");
+                    copy_target.Append(target_coords.Y);
+                    copy_target.Append(":");
+                    copy_target.Append(target_coords.Z);
+                    copy_target.Append(":");
+                    copy_target.Append("#FF75C9F1");
+                    copy_target.Append(":");
+
+                    if (asteroidsDetected == true)
+                    {
+                        comms_out.Append("GPS");
+                        comms_out.Append(":");
+                        comms_out.Append("AST");
+                        comms_out.Append(":");
+                        comms_out.Append(Math.Round(asteroid_coords.X, 2));
+                        comms_out.Append(":");
+                        comms_out.Append(Math.Round(asteroid_coords.Y, 2));
+                        comms_out.Append(":");
+                        comms_out.Append(Math.Round(asteroid_coords.Z, 2));
+                        comms_out.Append(":");
+                        comms_out.Append("#FF1551");
+                        comms_out.Append(":");
+
+                        copy_asteroid.Append("GPS");
+                        copy_asteroid.Append(":");
+                        copy_asteroid.Append("AST");
+                        copy_asteroid.Append(":");
+                        copy_asteroid.Append(Math.Round(asteroid_coords.X, 2));
+                        copy_asteroid.Append(":");
+                        copy_asteroid.Append(Math.Round(asteroid_coords.Y, 2));
+                        copy_asteroid.Append(":");
+                        copy_asteroid.Append(Math.Round(asteroid_coords.Z, 2));
+                        copy_asteroid.Append(":");
+                        copy_asteroid.Append("#FF1551");
+                        copy_asteroid.Append(":");
+                        remote_control_actual.CustomData = copy_asteroid.ToString();
+                    }
+
+                    if (free_form == true)
+                    {
+                        comms_out.Append("GPS");
+                        comms_out.Append(":");
+                        comms_out.Append("FRE");
+                        comms_out.Append(":");
+                        comms_out.Append(Math.Round(free_centre_target_coords.X, 2));
+                        comms_out.Append(":");
+                        comms_out.Append(Math.Round(free_centre_target_coords.Y, 2));
+                        comms_out.Append(":");
+                        comms_out.Append(Math.Round(free_centre_target_coords.Z, 2));
+                        comms_out.Append(":");
+                        comms_out.Append("#FF1551");
+                        comms_out.Append(":");
+
+                        copy_asteroid.Append("GPS");
+                        copy_asteroid.Append(":");
+                        copy_asteroid.Append("FRE");
+                        copy_asteroid.Append(":");
+                        copy_asteroid.Append(Math.Round(free_centre_target_coords.X, 2));
+                        copy_asteroid.Append(":");
+                        copy_asteroid.Append(Math.Round(free_centre_target_coords.Y, 2));
+                        copy_asteroid.Append(":");
+                        copy_asteroid.Append(Math.Round(free_centre_target_coords.Z, 2));
+                        copy_asteroid.Append(":");
+                        copy_asteroid.Append("#FF1551");
+                        copy_asteroid.Append(":");
+                        remote_control_actual.CustomData = copy_asteroid.ToString();
+                    }
+                    data_out = comms_out.ToString();
+                    Me.CustomData = copy_target.ToString();
+
+                    IGC.SendBroadcastMessage(tx_channel, data_out, TransmissionDistance.TransmissionDistanceMax);
+
+
+                    //build data string to for mining controller and transmit via IGC
+                    transmit_complete = true;
+                    target_transmit_light_actual.Enabled = true;
+                    Echo("Data sent.");
+
                 }
-                data_out = comms_out.ToString();
-                Me.CustomData = copy_target.ToString();
-
-                IGC.SendBroadcastMessage(tx_channel, data_out, TransmissionDistance.TransmissionDistanceMax);
-                
-                
-                //build data string to for mining controller and transmit via IGC
-                transmit_complete = true;
-                target_transmit_light_actual.Enabled = true;
-                Echo("Data sent.");
-
-            }
             #endregion
 
             #region main_display_mng
-            Echo($"Channel: {tx_channel}");
-            Echo("Target: " + surface_found);
-            Echo("TX: " + target_coords.X + " TY: " + target_coords.Y + " TZ: " + target_coords.Z + " SafeD: " + safe_position + "m");
-            if(batteries_tag.Count > 0)
-            {
-                Echo($"Power:{Math.Round((double)percent_battery_power,1)}%");
-            }
-            Echo("Free scan: " + free_form);
-            Echo("Asteroid detection: " + enable_asteroid_detection);
-            Echo("Asteroid: " + asteroidsDetected);
-            Echo("--------");
-            Echo("PB Arguments:");
-            Echo("========");
-            Echo($"Scan = {scan_cmd}");
-            Echo($"Reset = {reset_cmd}");
-            Echo($"Send  = {send_cmd}");
+                Echo($"Runtime: {Runtime.LastRunTimeMs}");
+                Echo($"Channel: {tx_channel}");
+                Echo("Target: " + surface_found);
+                Echo("TX: " + target_coords.X + " TY: " + target_coords.Y + " TZ: " + target_coords.Z + " SafeD: " + safe_position + "m");
+                if (batteries_tag.Count > 0)
+                {
+                    Echo($"Power:{Math.Round((double)percent_battery_power, 1)}%");
+                }
+                Echo("Free scan: " + free_form);
+                Echo("Asteroid detection: " + enable_asteroid_detection);
+                Echo("Asteroid: " + asteroidsDetected);
+                Echo("--------");
+                Echo("PB Arguments:");
+                Echo("========");
+                Echo($"Scan = {scan_cmd}");
+                Echo($"Reset = {reset_cmd}");
+                Echo($"Send  = {send_cmd}");
 
-            Echo("Use the below run arguments to interface:");
-            Echo("----------------------------------------");
-            Echo("");
-            /*if (!interface_presence)
-            {
-                Echo($"Interface not found. ");
-            } */            
-            if (interface_presence)
-            {
-                Echo($"Confirm = {confirmval}");
-            }            
-            Echo($"Increase selection menu = {increase}");
-            Echo($"Decrease selection menu = {decrease}");
-            if (interface_presence)
-            {
-                Echo($"Main menu = {menureturn}");
-                Echo($"Change increment = {incrsel}");
-                Echo($"Increase value = {increase}");
-                Echo($"Decrease value = {decrease}");
-            }
-            Echo("--------");
-            Echo($"Direct commands:");
-            Echo("--------");
-            Echo($"Asteroid EN = {ast_en_cmd}");
-            Echo($"Asteroid DIS = {ast_dis_cmd}");
-            Echo($"Reset send = {retry_send_cmd}");
-            Echo($"Free form EN = {free_form_en_cmd}");
-            Echo($"Free form DIS = {free_form_dis_cmd}");
+                Echo("Use the below run arguments to interface:");
+                Echo("----------------------------------------");
+                Echo("");
+                /*if (!interface_presence)
+                {
+                    Echo($"Interface not found. ");
+                } */
+                if (interface_presence)
+                {
+                    Echo($"Confirm = {confirmval}");
+                }
+                Echo($"Increase selection menu = {increase}");
+                Echo($"Decrease selection menu = {decrease}");
+                if (interface_presence)
+                {
+                    Echo($"Main menu = {menureturn}");
+                    Echo($"Change increment = {incrsel}");
+                    Echo($"Increase value = {increase}");
+                    Echo($"Decrease value = {decrease}");
+                }
+                Echo("--------");
+                Echo($"Direct commands:");
+                Echo("--------");
+                Echo($"Asteroid EN = {ast_en_cmd}");
+                Echo($"Asteroid DIS = {ast_dis_cmd}");
+                Echo($"Reset send = {retry_send_cmd}");
+                Echo($"Free form EN = {free_form_en_cmd}");
+                Echo($"Free form DIS = {free_form_dis_cmd}");
 
-            if (asteroidsDetected == true)
-            {
-                Echo("AX: " + Math.Round(asteroid_coords.X, 2) + " AY: " + Math.Round(asteroid_coords.Y, 2) + " AZ: " + Math.Round(asteroid_coords.Z, 2));
-            }
-            if (free_form == true && scan_complete)
-            {
-                Echo("FX: " + Math.Round(free_centre_target_coords.X, 2) + " FY: " + Math.Round(free_centre_target_coords.Y, 2) + " FZ: " + Math.Round(free_centre_target_coords.Z, 2));
-            }
+                if (asteroidsDetected == true)
+                {
+                    Echo("AX: " + Math.Round(asteroid_coords.X, 2) + " AY: " + Math.Round(asteroid_coords.Y, 2) + " AZ: " + Math.Round(asteroid_coords.Z, 2));
+                }
+                if (free_form == true && scan_complete)
+                {
+                    Echo("FX: " + Math.Round(free_centre_target_coords.X, 2) + " FY: " + Math.Round(free_centre_target_coords.Y, 2) + " FZ: " + Math.Round(free_centre_target_coords.Z, 2));
+                }
 
-            display_string_main.Clear();
-            if (batteries_tag.Count > 0)
-            {
-                display_string_main.Append('\n');
-                display_string_main.Append($"GMDP {ver} Running {icon}   Power:{Math.Round((double)percent_battery_power, 1)}%");
-                display_string_main.Append('\n');
-            }
-            if (batteries_tag.Count < 0)
-            {
-                display_string_main.Append('\n');
-                display_string_main.Append($"GMDP {ver} Running {icon}");
-                display_string_main.Append('\n');
-            }
-            
-            display_string_main.Append($"Channel: {tx_channel}");
-            display_string_main.Append('\n');
-            display_string_main.Append('\n');
-            display_string_main.Append("Target: " + surface_found);
-            display_string_main.Append('\n');
-            display_string_main.Append("TX: " + target_coords.X + " TY: " + target_coords.Y + " TZ: " + target_coords.Z);
-            display_string_main.Append('\n');
-            display_string_main.Append($"Surface distance: {safe_position}m");
-            display_string_main.Append('\n');
-            if (free_form)
-            {
-                display_string_main.Append($"Align Depth: {free_center_position}m");
-            }
-            display_string_main.Append('\n');
-            display_string_main.Append('\n');
-            display_string_main.Append(">: Scan type: " + scan_type_display + " :<");
-            display_string_main.Append('\n');
-            if (enable_asteroid_detection)
-            {
-                display_string_main.Append("Asteroid detection: " + enable_asteroid_detection);
-                display_string_main.Append('\n');
-            }
-            if (free_form)
-            {
-                display_string_main.Append("Free scan: " + free_form);
-                display_string_main.Append('\n');
-            }
-            if (enable_asteroid_detection)
-            {
-                display_string_main.Append("Asteroid: " + asteroidsDetected);
-                display_string_main.Append('\n');
-            }
-            display_string_main.Append("Scan: " + scan_complete);
-            display_string_main.Append('\n');
-            display_string_main.Append("Transmit: " + transmit_complete);
-            if (asteroidsDetected == true)
-            {
-                display_string_main.Append("AX: " + Math.Round(asteroid_coords.X, 2) + " AY: " + Math.Round(asteroid_coords.Y, 2) + " AZ: " + Math.Round(asteroid_coords.Z, 2));
-            }
-            if (free_form && scan_complete)
-            {
-                display_string_main.Append("FX: " + Math.Round(free_centre_target_coords.X, 2) + " FY: " + Math.Round(free_centre_target_coords.Y, 2) + " FZ: " + Math.Round(free_centre_target_coords.Z, 2));
-            }
-            if (display_surface_main != null)
-            {
-                display_surface_main.WriteText(display_string_main);
-            }
+                display_string_main.Clear();
+                if (batteries_tag.Count > 0)
+                {
+                    display_string_main.Append('\n');
+                    display_string_main.Append($"GMDP {ver} Running {icon}   Power:{Math.Round((double)percent_battery_power, 1)}%");
+                    display_string_main.Append('\n');
+                }
+                if (batteries_tag.Count < 0)
+                {
+                    display_string_main.Append('\n');
+                    display_string_main.Append($"GMDP {ver} Running {icon}");
+                    display_string_main.Append('\n');
+                }
 
-            #endregion
+                display_string_main.Append($"Channel: {tx_channel}");
+                display_string_main.Append('\n');
+                display_string_main.Append('\n');
+                display_string_main.Append("Target: " + surface_found);
+                display_string_main.Append('\n');
+                display_string_main.Append("TX: " + target_coords.X + " TY: " + target_coords.Y + " TZ: " + target_coords.Z);
+                display_string_main.Append('\n');
+                display_string_main.Append($"Surface distance: {safe_position}m");
+                display_string_main.Append('\n');
+                if (free_form)
+                {
+                    display_string_main.Append($"Align Depth: {free_center_position}m");
+                }
+                display_string_main.Append('\n');
+                display_string_main.Append('\n');
+                display_string_main.Append(">: Scan type: " + scan_type_display + " :<");
+                display_string_main.Append('\n');
+                if (enable_asteroid_detection)
+                {
+                    display_string_main.Append("Asteroid detection: " + enable_asteroid_detection);
+                    display_string_main.Append('\n');
+                }
+                if (free_form)
+                {
+                    display_string_main.Append("Free scan: " + free_form);
+                    display_string_main.Append('\n');
+                }
+                if (enable_asteroid_detection)
+                {
+                    display_string_main.Append("Asteroid: " + asteroidsDetected);
+                    display_string_main.Append('\n');
+                }
+                display_string_main.Append("Scan: " + scan_complete);
+                display_string_main.Append('\n');
+                display_string_main.Append("Transmit: " + transmit_complete);
+                if (asteroidsDetected == true)
+                {
+                    display_string_main.Append("AX: " + Math.Round(asteroid_coords.X, 2) + " AY: " + Math.Round(asteroid_coords.Y, 2) + " AZ: " + Math.Round(asteroid_coords.Z, 2));
+                }
+                if (free_form && scan_complete)
+                {
+                    display_string_main.Append("FX: " + Math.Round(free_centre_target_coords.X, 2) + " FY: " + Math.Round(free_centre_target_coords.Y, 2) + " FZ: " + Math.Round(free_centre_target_coords.Z, 2));
+                }
+                if (display_surface_main != null)
+                {
+                    display_surface_main.WriteText(display_string_main);
+                }
 
-            state_shifter();
-        } //end void main
+                #endregion
+
+                state_shifter();
+            } //end void main
+        
 
         public void drone_custom_data_check(string custominfo, int index)
         {
@@ -2491,7 +2731,7 @@ namespace IngameScript
         {
             if (menu_level == 0)
             {
-                item_max_limit = 1;
+                item_max_limit = 2;
                 item_min_limit = 0;
             }
             if (menu_level == 1)
@@ -2502,6 +2742,11 @@ namespace IngameScript
             if (menu_level == 2)
             {
                 item_max_limit = 10;
+                item_min_limit = 0;
+            }
+            if (menu_level == 3)
+            {
+                item_max_limit = 1;
                 item_min_limit = 0;
             }
             item_number++;
@@ -2515,7 +2760,7 @@ namespace IngameScript
         {
             if (menu_level == 0)
             {
-                item_max_limit = 1;
+                item_max_limit = 2;
                 item_min_limit = 0;
             }
             if (menu_level == 1)
@@ -2529,6 +2774,11 @@ namespace IngameScript
                 item_min_limit = 0;
 
             }
+            if (menu_level == 3)
+            {
+                item_max_limit = 10;
+                item_min_limit = 0;
+            }
             item_number--;
             if (item_number < item_min_limit)
             {
@@ -2538,11 +2788,9 @@ namespace IngameScript
 
         public void incr_scoll_command()
         {
-            if (menu_level == 1)
-            {
                 scroll_item_val_min_limit = 0;
                 scroll_item_val_max_limit = 2;
-            }
+
             scroll_item_val++;
             if (scroll_item_val > scroll_item_val_max_limit)
             {
@@ -2550,13 +2798,24 @@ namespace IngameScript
             }
         }
 
-        public void decr_scoll_command()
+        public void incr_scoll_command_2()
         {
-            if (menu_level == 1)
+
+                scroll_item_val_min_limit_2 = 0;
+                scroll_item_val_max_limit_2 = 3;
+            scroll_item_val_2++;
+            if (scroll_item_val_2 > scroll_item_val_max_limit_2)
             {
+                scroll_item_val_2 = scroll_item_val_min_limit_2;
+            }
+        }
+
+
+        public void decr_scoll_command()
+        {            
                 scroll_item_val_min_limit = 0;
                 scroll_item_val_max_limit = 2;
-            }
+            
             scroll_item_val--;
             if (scroll_item_val < scroll_item_val_min_limit)
             {
@@ -2564,22 +2823,64 @@ namespace IngameScript
             }
         }
 
+        public void decr_scoll_command_2()
+        {
+
+                scroll_item_val_min_limit_2 = 0;
+                scroll_item_val_max_limit_2 = 3;
+
+            scroll_item_val_2--;
+            if (scroll_item_val_2 < scroll_item_val_min_limit_2)
+            {
+                scroll_item_val_2 = scroll_item_val_max_limit_2;
+            }
+        }
+
         public void command_resolver()
         {
-            if (scroll_item_val == 0)
+            if (menu_level == 1)
             {
-                disp_command = "Planetary";
-                new_scan_type = 0;
+                if (scroll_item_val == 0)
+                {
+                    disp_command = "Planetary";
+                    new_scan_type = 0;
+                }
+                if (scroll_item_val == 1)
+                {
+                    disp_command = "Asteroid";
+                    new_scan_type = 1;
+                }
+                if (scroll_item_val == 2)
+                {
+                    disp_command = "Free Align";
+                    new_scan_type = 2;
+                }
             }
-            if (scroll_item_val == 1)
+        }
+        public void command_resolver_2()
+        {
+            if (menu_level == 3)
             {
-                disp_command = "Asteroid";
-                new_scan_type = 1;
-            }
-            if (scroll_item_val == 2)
-            {
-                disp_command = "Free Align";
-                new_scan_type = 2;
+                if (scroll_item_val_2 == 0)
+                {
+                    disp_command = "";
+                    temp_command = 0;
+                }
+                if (scroll_item_val_2 == 1)
+                {
+                    disp_command = "Scan";
+                    temp_command = 1;
+                }
+                if (scroll_item_val_2 == 2)
+                {
+                    disp_command = "Send";
+                    temp_command = 2;
+                }
+                if (scroll_item_val_2 == 3)
+                {
+                    disp_command = "Reset";
+                    temp_command = 3;
+                }
             }
         }
 
@@ -2719,12 +3020,24 @@ namespace IngameScript
                 display_string_interface.Append('\n');
                 display_string_interface.Append('\n');
             }
+            if (menu_level == 3)
+            {
+                display_string_interface.Append($"GMDP - {ver}");
+                display_string_interface.Append('\n');
+                display_string_interface.Append("------------");
+                display_string_interface.Append('\n');
+                display_string_interface.Append($"Command Menu - Iteration: {iteration_view} Item: {(item_number + 1)}");
+                display_string_interface.Append('\n');
+                display_string_interface.Append('\n');
+            }
 
             if (menu_level == 0)
             {
                 display_string_interface.Append($"{line_highlight_0} 1. {item_line_0[menu_level]}");
                 display_string_interface.Append('\n');
                 display_string_interface.Append($"{line_highlight_1} 2. {item_line_1[menu_level]}");
+                display_string_interface.Append('\n');
+                display_string_interface.Append($"{line_highlight_2} 3. {item_line_2[menu_level]}");
                 display_string_interface.Append('\n');
                 display_string_interface.Append('\n');
                 display_string_interface.Append('\n');
@@ -2786,6 +3099,31 @@ namespace IngameScript
                     display_string_interface.Append("Data confirmed!");
                     display_string_interface.Append('\n');
                 }
+            }
+            if (menu_level == 3)
+            {
+                display_string_interface.Append($"{line_highlight_0} 1. {scroll_command_item_2[scroll_item_val_2]}");
+                display_string_interface.Append('\n');
+                display_string_interface.Append($"{line_highlight_1} ..  {item_line_1[menu_level]}");
+                display_string_interface.Append('\n');
+                display_string_interface.Append($"{line_highlight_7} 8. {item_line_7[menu_level]} {cancel_display}");
+                display_string_interface.Append('\n');
+                display_string_interface.Append($"{line_highlight_8} 9.  {item_line_8[menu_level]} {menu_display}");
+                display_string_interface.Append('\n');
+                display_string_interface.Append($"{line_highlight_1} ..  {item_line_1[menu_level]}");
+                display_string_interface.Append('\n');
+                display_string_interface.Append($"{line_highlight_10} 11. {item_line_10[menu_level]} {displayconfirm_3}");
+                if (confirm_command)
+                {
+                    display_string_interface.Append('\n');
+                    display_string_interface.Append('\n');
+                    display_string_interface.Append("Command confirmed!");
+                    display_string_interface.Append('\n');
+                }
+                display_string_interface.Append('\n');
+                display_string_interface.Append('\n');
+                display_string_interface.Append($"Command: {last_command}");
+                display_string_interface.Append('\n');
             }
 
 
