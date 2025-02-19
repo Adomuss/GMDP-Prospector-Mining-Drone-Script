@@ -26,7 +26,7 @@ namespace IngameScript
     {
 
         //program start
-        //Mining controller spotter drone V0.315A
+        //Mining controller spotter drone V0.324A
         #region mdk preserve
         public Program()
         {
@@ -52,11 +52,13 @@ namespace IngameScript
         string free_form_dis_cmd = "freedis";
         string up_val = "incrval";
         string down_val = "decrval";
-        //string adjust_type = "select";
+        string menuitem_select = "select";
+        string iterate_cmd = "iterate";
+        string confirm_cmd = "confirm";
 
         int lcd_display_index = 0; //used for devices with multiple screen panels (0+) 
         #endregion
-        string version = "V0.323";
+        string version = "V0.324";
         string drone_id_name = "";
         string tx_channel = "";
         string light_transmit_tag = "";
@@ -72,7 +74,7 @@ namespace IngameScript
         float max_power_total;
         float t_current_power;
         float current_power_total;
-        float font_zoom = 1.0f;
+        float font_zoom = 0.850f;
 
         bool scan_complete = false;
         bool surface_found = false;
@@ -89,6 +91,13 @@ namespace IngameScript
         string icon = "";
         int scan_type = 0;
         string scan_type_display = "";
+        string command_display = "";
+        bool command_scan = false;
+        bool command_send = false;
+        bool command_reset = false;
+        bool confirm_pressed = false;
+
+
 
 
         IMyRadioAntenna antenna_actual;
@@ -128,10 +137,32 @@ namespace IngameScript
         List<IMyTerminalBlock> display_all;
         List<IMyTerminalBlock> display_tag_main;
         IMyTextSurface display_surface_1;
-
+        
+        MyIni _Storage = new MyIni();
+        float percent_battery_power = 0.0f;
         bool setup_complete = false;
+        string sel_left_1 = "";
+        string sel_left_2 = "";
+        string sel_left_3 = "";
+        string sel_left_4 = "";
+        string sel_right_1 = "";
+        string sel_right_2 = "";
+        string sel_right_3 = "";
+        string sel_right_4 = "";
+        int item_value_menu = 4;
+        string leftpip = ">:";
+        string rightpip = ":<";
+        int command_select = 0;
+        double iterate_val = 0.1;
+        int iterate_sel = 0;
+
+
         public void Save()
         {
+            _Storage.Set("State", "Safedistance", safe_position);
+            _Storage.Set("State", "freecenterposition", free_center_position);
+            _Storage.Set("State", "scantype", scan_type);
+            Storage = _Storage.ToString();
         }
 
         public void Main(string argument, UpdateType updateSource)
@@ -139,6 +170,23 @@ namespace IngameScript
             IMyGridTerminalSystem gts = GridTerminalSystem as IMyGridTerminalSystem;
             if (!setup_complete)
             {
+                if (_Storage.TryParse(Storage))
+                {
+                    var str = _Storage.Get("State", "Safedistance").ToString();
+                    double.TryParse(str, out safe_position);
+                    str = _Storage.Get("State", "freecenterposition").ToString();
+                    double.TryParse(str, out free_center_position);
+                    str = _Storage.Get("State", "scantype").ToString();
+                    int.TryParse(str, out scan_type);
+                    Echo("Storage Loaded");
+                }
+                else
+                {
+                    safe_position = 30.0;
+                    free_center_position = 20000.0;
+                    scan_type = 0;
+                    Echo("Default Loaded");
+                }
                 drone_id_name = "[" + scout_tag + " " + drone_id + "]";
                 tx_channel = drone_tag + " " + prospC;
                 light_transmit_tag = "[" + scout_tag + " " + drone_id + " " + txl + "]";
@@ -286,6 +334,7 @@ namespace IngameScript
                     {
                         if (display_all[i].CustomName.Contains(lcd_display_tag))
                         {
+                            display_all[i].CustomName = $"Prospector Interface Display {lcd_display_name} [{scout_tag}]";
                             display_tag_main.Add(display_all[i]);
                         }
                     }
@@ -465,17 +514,19 @@ namespace IngameScript
             max_power_total = 0;
             t_current_power = 0;
             current_power_total = 0;
-            float percent_battery_power = 0.0f;
+            percent_battery_power = 0.0f;
             for (int i = 0; i < batteries_tag.Count; i++)
             {
-                currentbatteryblock = (IMyBatteryBlock)gts.GetBlockWithName(batteries_tag[i].CustomName) as IMyBatteryBlock;
-                //record stored and max battery capacity
-                t_stored_power = currentbatteryblock.CurrentStoredPower;
+                if (batteries_tag[i] != null) {
+                    currentbatteryblock = batteries_tag[i];
+                    //record stored and max battery capacity
+                    t_stored_power = currentbatteryblock.CurrentStoredPower;
+                    t_max_power = currentbatteryblock.MaxStoredPower;
+                    t_current_power = currentbatteryblock.CurrentOutput;
+                }
                 stored_power_total = stored_power_total + t_stored_power;
-                t_max_power = currentbatteryblock.MaxStoredPower;
                 max_power_total = max_power_total + t_max_power;
-                //record current power output
-                t_current_power = currentbatteryblock.CurrentOutput;
+                //record current power output                
                 current_power_total = current_power_total + t_current_power;
                 //calculate storage capacity percent
                 percent_battery_power = (stored_power_total / max_power_total) * 100;
@@ -535,9 +586,154 @@ namespace IngameScript
                 sensor_actual.DetectOwner = false;
             }
 
+            if (argument.Contains(confirm_cmd) && !confirm_pressed && item_value_menu >= 0 && item_value_menu < 4)
+            {
+                confirm_pressed = true;
+            }
+            if (argument.Contains(menuitem_select) || argument.Contains(confirm_cmd) && confirm_pressed)
+            {
+                item_value_menu++;
+                if (item_value_menu == 2 && scan_type == 0)
+                {
+                    item_value_menu = 3;
+                }
+                if (item_value_menu == 2 && scan_type == 1)
+                {
+                    item_value_menu=3;
+                }
+                if (item_value_menu > 4)
+                {
+                    item_value_menu = 1;
+                }
+                if (item_value_menu < 1)
+                {
+                    item_value_menu = 4;                    
+                }  
+            }            
+
+            if (argument.Contains(iterate_cmd))
+            {
+                iterate_sel++;
+                if (iterate_sel > 4)
+                {
+                    iterate_sel = 0;
+                }
+            }
+
+            if (item_value_menu == 0)
+            {
+                sel_left_1 = "";
+                sel_right_1 = "";
+                sel_left_2 = "";
+                sel_right_2 = "";
+                sel_left_3 = "";
+                sel_right_3 = "";
+                sel_left_4 = "";
+                sel_right_4 = "";
+            }
+            if (item_value_menu == 1)
+            {
+                sel_left_1 = leftpip;
+                sel_right_1 = rightpip;
+                sel_left_2 = "";
+                sel_right_2 = "";
+                sel_left_3 = "";
+                sel_right_3 = "";
+                sel_left_4 = "";
+                sel_right_4 = "";
+            }
+            if (item_value_menu == 2)
+            {
+                sel_left_2 = leftpip;
+                sel_right_2 = rightpip;
+                sel_left_1 = "";
+                sel_right_1 = "";
+                sel_left_3 = "";
+                sel_right_3 = "";
+                sel_left_4 = "";
+                sel_right_4 = "";
+            }
+            if (item_value_menu == 3)
+            {
+                sel_left_3 = leftpip;
+                sel_right_3 = rightpip;
+                sel_left_2 = "";
+                sel_right_2 = "";
+                sel_left_1 = "";
+                sel_right_1 = "";
+                sel_left_4 = "";
+                sel_right_4 = "";
+                iterate_sel = 1;
+            }
+            if (item_value_menu == 4)
+            {
+                sel_left_4 = leftpip;
+                sel_right_3 = rightpip;
+                sel_left_2 = "";
+                sel_right_2 = "";
+                sel_left_1 = "";
+                sel_right_1 = "";
+                sel_left_3 = "";
+                sel_right_3 = "";
+                iterate_sel = 1;
+            }
+
+            if (iterate_sel == 0)
+            {
+                iterate_val = 0.1;
+            }
+            if (iterate_sel == 1)
+            {
+                iterate_val = 1.0;
+            }
+            if (iterate_sel == 2)
+            {
+                iterate_val = 10.0;
+            }
+            if (iterate_sel == 3)
+            {
+                iterate_val =100.0;
+            }
+            if (iterate_sel == 4)
+            {
+                iterate_val = 1000.0;
+            }
 
 
-            if (argument.Contains(up_val))
+            if (argument.Contains(up_val) && item_value_menu == 1)
+            {
+                safe_position += iterate_val;
+                if (safe_position > 2000.0)
+                {
+                    safe_position = 2000.0;
+                }
+            }
+            if (argument.Contains(down_val) && item_value_menu == 1)
+            {
+                safe_position -= iterate_val;
+                if (safe_position < 0.0)
+                {
+                    safe_position = 0.0;
+                }
+            }
+            if (argument.Contains(up_val) && item_value_menu == 2)
+            {
+                free_center_position+= iterate_val;
+                if (free_center_position < 0.0)
+                {
+                    free_center_position = 0.0;
+                }
+            }
+            if (argument.Contains(down_val) && item_value_menu == 2)
+            {
+                free_center_position -= iterate_val;
+                if (free_center_position < 0.0)
+                {
+                    free_center_position = 0.0;
+                }
+            }
+
+            if (argument.Contains(up_val) && item_value_menu == 3)
             {
                 scan_type++;
                 if (scan_type > 2)
@@ -545,12 +741,28 @@ namespace IngameScript
                     scan_type = 0;
                 }
             }
-            if (argument.Contains(down_val))
+            if (argument.Contains(down_val) && item_value_menu == 3)
             {
                 scan_type--;
                 if (scan_type < 0)
                 {
                     scan_type = 2;
+                }
+            }
+            if (argument.Contains(up_val) && item_value_menu == 4)
+            {
+                command_select++;
+                if (command_select > 3)
+                {
+                    command_select = 0;
+                }
+            }
+            if (argument.Contains(down_val) && item_value_menu == 4)
+            {
+                command_select--;
+                if (command_select < 0)
+                {
+                    command_select = 3;
                 }
             }
 
@@ -572,7 +784,81 @@ namespace IngameScript
                 enable_asteroid_detection = false;
                 free_form = true;
             }
-            if (argument.Contains(reset_cmd))
+
+            if (command_select == 0)
+            {
+                command_display = "Scan";
+
+            }
+            if (command_select == 1)
+            {
+                command_display = "Send";
+
+            }
+            if (command_select == 2)
+            {
+                command_display = "Reset";
+            }
+            if (command_select == 3)
+            {
+                command_display = "Cancel";
+            }
+
+            if (argument.Contains(confirm_cmd) && item_value_menu == 4 && confirm_pressed)
+            {
+                argument = "";
+                confirm_pressed = false;
+            }
+
+            if (argument.Contains(confirm_cmd) && item_value_menu == 4 && command_select == 0)
+            {
+                if (!command_scan)
+                {
+                    command_scan = true;
+                }
+                item_value_menu=0;
+                if (confirm_pressed)
+                {
+                    confirm_pressed = false;
+                }
+            }
+            if (argument.Contains(confirm_cmd) && item_value_menu == 4 && command_select == 1)
+            {
+                if (!command_send)
+                {
+                    command_send = true;
+                }
+                item_value_menu = 0;
+                if (confirm_pressed)
+                {
+                    confirm_pressed = false;
+                }
+            }
+            if (argument.Contains(confirm_cmd) && item_value_menu == 4 && command_select == 2)
+            {
+                if (!command_reset)
+                {
+                    command_reset = true;
+                }
+                item_value_menu = 0;
+                if (confirm_pressed)
+                {
+                    confirm_pressed = false;
+                }
+            }
+            if (argument.Contains(confirm_cmd) && item_value_menu == 4 && command_select == 3)
+            {
+                item_value_menu = 0;
+                command_reset = false;
+                command_send = false;
+                command_scan = false;
+                if (confirm_pressed)
+                {
+                    confirm_pressed = false;
+                }
+            }
+
+            if (argument.Contains(reset_cmd) || command_reset)
             {
                 scan_complete = false;
                 Echo("Scan reset.");
@@ -580,11 +866,14 @@ namespace IngameScript
                 Echo("Transmission reset.");
                 target_aquired_light_actual.Enabled = false;
                 target_transmit_light_actual.Enabled = false;
+                asteroidsDetected = false;                
+                surface_found = false;
+                command_reset = false;
             }
 
-            if (argument.Contains(scan_cmd))
+            if (argument.Contains(scan_cmd) || command_scan)
             {
-
+                command_scan = false;
                 if (scan_complete == false)
                 {
                     MyDetectedEntityInfo hitinfocamera = camera_actual.Raycast(raycast_scan_distance);
@@ -666,7 +955,7 @@ namespace IngameScript
 
                         target_aquired_light_actual.Enabled = true;
                         target_transmit_light_actual.Enabled = false;
-
+                        
                     } // surface found
 
                 } // scan complete
@@ -731,8 +1020,9 @@ namespace IngameScript
 
 
 
-            if (argument.Contains(send_cmd) && scan_complete == true && transmit_complete == false)
+            if (argument.Contains(send_cmd) && scan_complete == true && transmit_complete == false|| command_send && scan_complete == true && transmit_complete == false)
             {
+                command_send = false;
                 StringBuilder comms_out = new StringBuilder();
                 StringBuilder copy_target = new StringBuilder();
                 StringBuilder copy_asteroid = new StringBuilder();
@@ -843,14 +1133,17 @@ namespace IngameScript
             Echo("--------");
             Echo("PB Arguments:");
             Echo("========");
-            Echo($"Scan = {scan_cmd}");
-            Echo($"Reset = {reset_cmd}");
-            Echo($"Send  = {send_cmd}");
             Echo($"Increase selection menu = {up_val}");
             Echo($"Decrease selection menu = {down_val}");
+            Echo($"Menu item = {menuitem_select}");
+            Echo($"Iteration value = {iterate_cmd}");
+            Echo($"Confirm = {confirm_cmd}");
             Echo("--------");
             Echo($"Direct commands:");
             Echo("--------");
+            Echo($"Scan = {scan_cmd}");
+            Echo($"Reset = {reset_cmd}");
+            Echo($"Send  = {send_cmd}");
             Echo($"Asteroid EN = {ast_en_cmd}");
             Echo($"Asteroid DIS = {ast_dis_cmd}");
             Echo($"Reset send = {retry_send_cmd}");
@@ -868,7 +1161,7 @@ namespace IngameScript
 
             StringBuilder display_string = new StringBuilder();
             display_string.Append('\n');
-            display_string.Append($"GMDP {version} Running {icon}");
+            display_string.Append($"GMDP {version} Running {icon} ({Math.Round((double)percent_battery_power,1)})%");
             display_string.Append('\n');
             display_string.Append($"Channel: {tx_channel}");
             display_string.Append('\n');
@@ -877,10 +1170,23 @@ namespace IngameScript
             display_string.Append('\n');
             display_string.Append("TX: " + target_coords.X + " TY: " + target_coords.Y + " TZ: " + target_coords.Z);
             display_string.Append('\n');
-            display_string.Append("Surface distance: " + safe_position + "m");
+            display_string.Append('\n');
+            display_string.Append($"Adjust value: {iterate_val}");
+            display_string.Append('\n');
+            display_string.Append($"{sel_left_1} Surface distance: {safe_position}m {sel_right_1}");
+            display_string.Append('\n');
+            if (free_form)
+            {
+                display_string.Append($"{sel_left_2}Align Depth: {free_center_position}m {sel_right_2}");
+            }
             display_string.Append('\n');
             display_string.Append('\n');
-            display_string.Append(">: Scan type: " + scan_type_display + " :<");
+            display_string.Append($"{sel_left_3} Scan type: {scan_type_display} {sel_right_3}");
+
+            display_string.Append('\n');
+            display_string.Append($"{sel_left_4} Command: {command_display} {sel_right_4}");
+            display_string.Append('\n');
+            display_string.Append('\n');
             display_string.Append('\n');
             if (enable_asteroid_detection)
             {
@@ -894,7 +1200,7 @@ namespace IngameScript
             }
             if (enable_asteroid_detection)
             {
-                display_string.Append("Asteroid: " + asteroidsDetected);
+                display_string.Append($"Asteroid: {asteroidsDetected} Sensor: {sensor_actual.IsActive}");
                 display_string.Append('\n');
             }
             display_string.Append("Scan: " + scan_complete);
