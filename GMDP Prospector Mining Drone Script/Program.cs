@@ -52,6 +52,7 @@ namespace IngameScript
         string free_form_dis_cmd = "freedis";
         string up_val = "incrval";
         string down_val = "decrval";
+        //string adjust_type = "select";
 
         int lcd_display_index = 0; //used for devices with multiple screen panels (0+) 
         #endregion
@@ -567,7 +568,7 @@ namespace IngameScript
             }
             if (scan_type == 2)
             {
-                scan_type_display = "Free";
+                scan_type_display = "Free Align";
                 enable_asteroid_detection = false;
                 free_form = true;
             }
@@ -901,10 +902,12 @@ namespace IngameScript
             display_string.Append("Transmit: " + transmit_complete);
             if (asteroidsDetected == true)
             {
+                display_string.Append('\n');
                 display_string.Append("AX: " + Math.Round(asteroid_coords.X, 2) + " AY: " + Math.Round(asteroid_coords.Y, 2) + " AZ: " + Math.Round(asteroid_coords.Z, 2));
             }
             if (free_form && scan_complete)
             {
+                display_string.Append('\n');
                 display_string.Append("FX: " + Math.Round(free_centre_target_coords.X, 2) + " FY: " + Math.Round(free_centre_target_coords.Y, 2) + " FZ: " + Math.Round(free_centre_target_coords.Z, 2));
             }
             if (display_surface_1 != null)
