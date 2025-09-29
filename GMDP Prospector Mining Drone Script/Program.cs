@@ -26,7 +26,7 @@ namespace IngameScript
     {
 
         //program start
-        //Mining controller spotter drone V0.324A
+        //Mining controller spotter drone V0.325A
         #region mdk preserve
         public Program()
         {
@@ -58,7 +58,7 @@ namespace IngameScript
 
         int lcd_display_index = 0; //used for devices with multiple screen panels (0+) 
         #endregion
-        string version = "V0.324";
+        string version = "V0.325";
         string drone_id_name = "";
         string tx_channel = "";
         string light_transmit_tag = "";
@@ -89,7 +89,7 @@ namespace IngameScript
         int temp_id_num;
         int stateshift = 0;
         string icon = "";
-        int scan_type = 0;
+        int scan_type = 2;
         string scan_type_display = "";
         string command_display = "";
         bool command_scan = false;
@@ -173,18 +173,40 @@ namespace IngameScript
                 if (_Storage.TryParse(Storage))
                 {
                     var str = _Storage.Get("State", "Safedistance").ToString();
-                    double.TryParse(str, out safe_position);
+                    if (double.TryParse(str, out safe_position))
+                    {
+                        double.TryParse(str, out safe_position);
+                    }
+                    else
+                    {
+                        safe_position = 30.0;
+                    }
+
                     str = _Storage.Get("State", "freecenterposition").ToString();
-                    double.TryParse(str, out free_center_position);
+                    if (double.TryParse(str, out free_center_position))
+                    {
+                        double.TryParse(str, out free_center_position);
+                    }
+                    else
+                    {
+                        free_center_position = 20000.0;
+                    }                    
                     str = _Storage.Get("State", "scantype").ToString();
-                    int.TryParse(str, out scan_type);
+                    if (int.TryParse(str, out scan_type))
+                    {
+                        int.TryParse(str, out scan_type);
+                    }
+                    else
+                    {
+                        scan_type = 2;
+                    }                    
                     Echo("Storage Loaded");
                 }
                 else
                 {
                     safe_position = 30.0;
                     free_center_position = 20000.0;
-                    scan_type = 0;
+                    scan_type = 2;
                     Echo("Default Loaded");
                 }
                 drone_id_name = "[" + scout_tag + " " + drone_id + "]";
