@@ -938,7 +938,7 @@ namespace IngameScript
                         {
                             //set vector to gravity
                             gravity = remote_control_actual.GetNaturalGravity();
-                            TargetVec = Vector3D.Normalize(new Vector3D(gravity));
+                            TargetVec = Vector3D.Normalize(new Vector3D(-gravity));
                             Echo("align to gravity");
                         }
 
