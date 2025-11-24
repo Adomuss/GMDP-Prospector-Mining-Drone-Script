@@ -1065,7 +1065,7 @@ namespace IngameScript
 
                 copy_target.Append("GPS");
                 copy_target.Append(":");
-                copy_target.Append("GRV");
+                copy_target.Append("TGT");
                 copy_target.Append(":");
                 copy_target.Append(target_coords.X);
                 copy_target.Append(":");
@@ -1136,9 +1136,16 @@ namespace IngameScript
                     copy_asteroid.Append(":");
                     remote_control_actual.CustomData = copy_asteroid.ToString();
                 }
-                data_out = comms_out.ToString();
-                Me.CustomData = comms_out.ToString();
-
+                
+                Me.CustomData = copy_target.ToString();
+                if(free_form || asteroidsDetected)
+                {
+                    data_out = comms_out + copy_asteroid.ToString(); ;
+                }
+                else
+                {
+                    data_out = comms_out.ToString();
+                }                
 
                 IGC.SendBroadcastMessage(tx_channel, data_out, TransmissionDistance.TransmissionDistanceMax);
                 //build data string to for mining controller and transmit via IGC
