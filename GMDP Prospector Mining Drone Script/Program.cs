@@ -1075,6 +1075,7 @@ namespace IngameScript
                 copy_target.Append(":");
                 copy_target.Append("#FF75C9F1");
                 copy_target.Append(":");
+                remote_control_actual.CustomData = copy_target.ToString();
 
                 if (asteroidsDetected == true)
                 {
@@ -1136,7 +1137,8 @@ namespace IngameScript
                     remote_control_actual.CustomData = copy_asteroid.ToString();
                 }
                 data_out = comms_out.ToString();
-                Me.CustomData = copy_target.ToString();
+                Me.CustomData = comms_out.ToString();
+
 
                 IGC.SendBroadcastMessage(tx_channel, data_out, TransmissionDistance.TransmissionDistanceMax);
                 //build data string to for mining controller and transmit via IGC
