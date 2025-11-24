@@ -26,7 +26,7 @@ namespace IngameScript
     {
 
         //program start
-        //Mining controller spotter drone V0.325A
+        //Mining controller spotter drone V0.326A
         #region mdk preserve
         public Program()
         {
@@ -58,7 +58,7 @@ namespace IngameScript
 
         int lcd_display_index = 0; //used for devices with multiple screen panels (0+) 
         #endregion
-        string version = "V0.325";
+        string version = "V0.326";
         string drone_id_name = "";
         string tx_channel = "";
         string light_transmit_tag = "";
@@ -938,7 +938,7 @@ namespace IngameScript
                         {
                             //set vector to gravity
                             gravity = remote_control_actual.GetNaturalGravity();
-                            TargetVec = Vector3D.Normalize(new Vector3D(-gravity));
+                            TargetVec = Vector3D.Normalize(new Vector3D(gravity));
                             Echo("align to gravity");
                         }
 
@@ -1210,7 +1210,7 @@ namespace IngameScript
             display_string.Append('\n');
             display_string.Append('\n');
             display_string.Append('\n');
-            if (enable_asteroid_detection)
+            if (!enable_asteroid_detection)
             {
                 display_string.Append("Asteroid detection: " + enable_asteroid_detection);
                 display_string.Append('\n');
