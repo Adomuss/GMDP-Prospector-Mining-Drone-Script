@@ -26,7 +26,7 @@ namespace IngameScript
     {
 
         //program start
-        //Mining controller spotter drone V0.326A
+        //Mining controller spotter drone V0.327A
         #region mdk preserve
         public Program()
         {
@@ -58,7 +58,7 @@ namespace IngameScript
 
         int lcd_display_index = 0; //used for devices with multiple screen panels (0+) 
         #endregion
-        string version = "V0.326";
+        string version = "V0.327";
         string drone_id_name = "";
         string tx_channel = "";
         string light_transmit_tag = "";
@@ -190,7 +190,11 @@ namespace IngameScript
                     else
                     {
                         free_center_position = 20000.0;
-                    }                    
+                    }
+                    if (free_center_position == 0.0)
+                    {
+                        free_center_position = 20000.0;
+                    }
                     str = _Storage.Get("State", "scantype").ToString();
                     if (int.TryParse(str, out scan_type))
                     {
@@ -1052,11 +1056,11 @@ namespace IngameScript
                 comms_out.Append(":");
                 comms_out.Append("TGT");
                 comms_out.Append(":");
-                comms_out.Append(target_coords.X);
+                comms_out.Append(surface_coords.X);
                 comms_out.Append(":");
-                comms_out.Append(target_coords.Y);
+                comms_out.Append(surface_coords.Y);
                 comms_out.Append(":");
-                comms_out.Append(target_coords.Z);
+                comms_out.Append(surface_coords.Z);
                 comms_out.Append(":");
                 comms_out.Append("#FF75C9F1");
                 comms_out.Append(":");
@@ -1065,13 +1069,13 @@ namespace IngameScript
 
                 copy_target.Append("GPS");
                 copy_target.Append(":");
-                copy_target.Append("TGT");
+                copy_target.Append("GRV");
                 copy_target.Append(":");
-                copy_target.Append(target_coords.X);
+                copy_target.Append(Math.Round(target_coords.X, 2));
                 copy_target.Append(":");
-                copy_target.Append(target_coords.Y);
+                copy_target.Append(Math.Round(target_coords.Y, 2));
                 copy_target.Append(":");
-                copy_target.Append(target_coords.Z);
+                copy_target.Append(Math.Round(target_coords.Z, 2));
                 copy_target.Append(":");
                 copy_target.Append("#FF75C9F1");
                 copy_target.Append(":");
@@ -1096,11 +1100,11 @@ namespace IngameScript
                     copy_asteroid.Append(":");
                     copy_asteroid.Append("AST");
                     copy_asteroid.Append(":");
-                    copy_asteroid.Append(Math.Round(asteroid_coords.X, 2));
+                    copy_asteroid.Append(Math.Round(target_coords.X, 2));
                     copy_asteroid.Append(":");
-                    copy_asteroid.Append(Math.Round(asteroid_coords.Y, 2));
+                    copy_asteroid.Append(Math.Round(target_coords.Y, 2));
                     copy_asteroid.Append(":");
-                    copy_asteroid.Append(Math.Round(asteroid_coords.Z, 2));
+                    copy_asteroid.Append(Math.Round(target_coords.Z, 2));
                     copy_asteroid.Append(":");
                     copy_asteroid.Append("#FF1551");
                     copy_asteroid.Append(":");
@@ -1113,11 +1117,11 @@ namespace IngameScript
                     comms_out.Append(":");
                     comms_out.Append("FRE");
                     comms_out.Append(":");
-                    comms_out.Append(Math.Round(free_centre_target_coords.X, 2));
+                    comms_out.Append(Math.Round(surface_coords.X, 2));
                     comms_out.Append(":");
-                    comms_out.Append(Math.Round(free_centre_target_coords.Y, 2));
+                    comms_out.Append(Math.Round(surface_coords.Y, 2));
                     comms_out.Append(":");
-                    comms_out.Append(Math.Round(free_centre_target_coords.Z, 2));
+                    comms_out.Append(Math.Round(surface_coords.Z, 2));
                     comms_out.Append(":");
                     comms_out.Append("#FF1551");
                     comms_out.Append(":");
@@ -1137,14 +1141,14 @@ namespace IngameScript
                     remote_control_actual.CustomData = copy_asteroid.ToString();
                 }
                 
-                Me.CustomData = copy_target.ToString();
+                Me.CustomData = comms_out.ToString();
                 if(free_form || asteroidsDetected)
                 {
                     data_out = comms_out + copy_asteroid.ToString(); ;
                 }
                 else
                 {
-                    data_out = comms_out.ToString();
+                    data_out = comms_out + copy_target.ToString();
                 }                
 
                 IGC.SendBroadcastMessage(tx_channel, data_out, TransmissionDistance.TransmissionDistanceMax);
