@@ -26,7 +26,7 @@ namespace IngameScript
     {
 
         //program start
-        //Mining controller spotter drone V0.328A
+        //Mining controller spotter drone V0.329A
         #region mdk preserve
         public Program()
         {
@@ -58,7 +58,7 @@ namespace IngameScript
 
         int lcd_display_index = 0; //used for devices with multiple screen panels (0+) 
         #endregion
-        string version = "V0.328";
+        string version = "V0.329";
         string drone_id_name = "";
         string tx_channel = "";
         string light_transmit_tag = "";
@@ -1056,6 +1056,8 @@ namespace IngameScript
                 StringBuilder comms_out = new StringBuilder();
                 StringBuilder copy_target = new StringBuilder();
                 StringBuilder copy_asteroid = new StringBuilder();
+                comms_out.Clear();
+                copy_target.Clear();
                 comms_out.Append("GPS");
                 comms_out.Append(":");
                 comms_out.Append("TGT");
@@ -1087,6 +1089,8 @@ namespace IngameScript
 
                 if (asteroidsDetected == true)
                 {
+                    comms_out.Clear();
+                    copy_asteroid.Clear();
                     comms_out.Append("GPS");
                     comms_out.Append(":");
                     comms_out.Append("AST");
@@ -1119,6 +1123,8 @@ namespace IngameScript
 
                 if (free_form == true)
                 {
+                    comms_out.Clear();
+                    copy_asteroid.Clear();
                     comms_out.Append("GPS");
                     comms_out.Append(":");
                     comms_out.Append("FRE");
