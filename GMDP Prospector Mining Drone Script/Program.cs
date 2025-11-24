@@ -26,7 +26,7 @@ namespace IngameScript
     {
 
         //program start
-        //Mining controller spotter drone V0.327A
+        //Mining controller spotter drone V0.328A
         #region mdk preserve
         public Program()
         {
@@ -58,7 +58,7 @@ namespace IngameScript
 
         int lcd_display_index = 0; //used for devices with multiple screen panels (0+) 
         #endregion
-        string version = "V0.327";
+        string version = "V0.328";
         string drone_id_name = "";
         string tx_channel = "";
         string light_transmit_tag = "";
@@ -110,6 +110,7 @@ namespace IngameScript
 
         Vector3D surface_coords;
         Vector3D target_coords;
+        Vector3D gravity_coords;
         Vector3D asteroid_coords;
         Vector3D camera_coords;
         Vector3D free_centre_target_coords;
@@ -906,9 +907,9 @@ namespace IngameScript
                     if (hitinfocamera.IsEmpty())
                     {
                         Echo($"Mining surface not found within: '{raycast_scan_distance}'m.");
-                        surface_coords.X = remote_control_actual.GetPosition().X;
-                        surface_coords.Z = remote_control_actual.GetPosition().Y;
-                        surface_coords.Y = remote_control_actual.GetPosition().Z;
+                        surface_coords.X = Math.Round(remote_control_actual.GetPosition().X,2);
+                        surface_coords.Z = Math.Round(remote_control_actual.GetPosition().Y,2);
+                        surface_coords.Y = Math.Round(remote_control_actual.GetPosition().Z,2);
                         surface_found = false;
                     }
 
@@ -916,9 +917,9 @@ namespace IngameScript
                     {
                         distance_scan = (hitinfocamera.HitPosition.Value - camera_actual.GetPosition()).Length();
                         Echo($"Surface found'{distance_scan}'m.");
-                        surface_coords.X = hitinfocamera.HitPosition.Value.X;
-                        surface_coords.Y = hitinfocamera.HitPosition.Value.Y;
-                        surface_coords.Z = hitinfocamera.HitPosition.Value.Z;
+                        surface_coords.X = Math.Round(hitinfocamera.HitPosition.Value.X,2);
+                        surface_coords.Y = Math.Round(hitinfocamera.HitPosition.Value.Y,2);
+                        surface_coords.Z = Math.Round(hitinfocamera.HitPosition.Value.Z,2);
                         surface_found = true;
                     }
 
@@ -937,12 +938,15 @@ namespace IngameScript
                         {
                             asteroidsDetected = false;
                         }
-
                         if (!asteroidsDetected && !free_form)
                         {
                             //set vector to gravity
                             gravity = remote_control_actual.GetNaturalGravity();
                             TargetVec = Vector3D.Normalize(new Vector3D(-gravity));
+                            Vector3D GravitMagic = TargetVec * -free_center_position;
+                            gravity_coords.Y = Math.Round(surface_coords.Y + GravitMagic.Y, 2);
+                            gravity_coords.X = Math.Round(surface_coords.X + GravitMagic.X, 2);
+                            gravity_coords.Z = Math.Round(surface_coords.Z + GravitMagic.Z, 2);
                             Echo("align to gravity");
                         }
 
@@ -1056,11 +1060,11 @@ namespace IngameScript
                 comms_out.Append(":");
                 comms_out.Append("TGT");
                 comms_out.Append(":");
-                comms_out.Append(surface_coords.X);
+                comms_out.Append(target_coords.X);
                 comms_out.Append(":");
-                comms_out.Append(surface_coords.Y);
+                comms_out.Append(target_coords.Y);
                 comms_out.Append(":");
-                comms_out.Append(surface_coords.Z);
+                comms_out.Append(target_coords.Z);
                 comms_out.Append(":");
                 comms_out.Append("#FF75C9F1");
                 comms_out.Append(":");
@@ -1071,11 +1075,11 @@ namespace IngameScript
                 copy_target.Append(":");
                 copy_target.Append("GRV");
                 copy_target.Append(":");
-                copy_target.Append(Math.Round(target_coords.X, 2));
+                copy_target.Append(Math.Round(gravity_coords.X, 2));
                 copy_target.Append(":");
-                copy_target.Append(Math.Round(target_coords.Y, 2));
+                copy_target.Append(Math.Round(gravity_coords.Y, 2));
                 copy_target.Append(":");
-                copy_target.Append(Math.Round(target_coords.Z, 2));
+                copy_target.Append(Math.Round(gravity_coords.Z, 2));
                 copy_target.Append(":");
                 copy_target.Append("#FF75C9F1");
                 copy_target.Append(":");
@@ -1087,24 +1091,26 @@ namespace IngameScript
                     comms_out.Append(":");
                     comms_out.Append("AST");
                     comms_out.Append(":");
-                    comms_out.Append(Math.Round(asteroid_coords.X, 2));
+                    comms_out.Append(Math.Round(target_coords.X, 2));
                     comms_out.Append(":");
-                    comms_out.Append(Math.Round(asteroid_coords.Y, 2));
+                    comms_out.Append(Math.Round(target_coords.Y, 2));
                     comms_out.Append(":");
-                    comms_out.Append(Math.Round(asteroid_coords.Z, 2));
+                    comms_out.Append(Math.Round(target_coords.Z, 2));
                     comms_out.Append(":");
                     comms_out.Append("#FF1551");
+                    comms_out.Append(":");
+                    comms_out.Append(safe_position);
                     comms_out.Append(":");
 
                     copy_asteroid.Append("GPS");
                     copy_asteroid.Append(":");
                     copy_asteroid.Append("AST");
                     copy_asteroid.Append(":");
-                    copy_asteroid.Append(Math.Round(target_coords.X, 2));
+                    copy_asteroid.Append(Math.Round(asteroid_coords.X, 2));
                     copy_asteroid.Append(":");
-                    copy_asteroid.Append(Math.Round(target_coords.Y, 2));
+                    copy_asteroid.Append(Math.Round(asteroid_coords.Y, 2));
                     copy_asteroid.Append(":");
-                    copy_asteroid.Append(Math.Round(target_coords.Z, 2));
+                    copy_asteroid.Append(Math.Round(asteroid_coords.Z, 2));
                     copy_asteroid.Append(":");
                     copy_asteroid.Append("#FF1551");
                     copy_asteroid.Append(":");
@@ -1117,13 +1123,15 @@ namespace IngameScript
                     comms_out.Append(":");
                     comms_out.Append("FRE");
                     comms_out.Append(":");
-                    comms_out.Append(Math.Round(surface_coords.X, 2));
+                    comms_out.Append(Math.Round(target_coords.X, 2));
                     comms_out.Append(":");
-                    comms_out.Append(Math.Round(surface_coords.Y, 2));
+                    comms_out.Append(Math.Round(target_coords.Y, 2));
                     comms_out.Append(":");
-                    comms_out.Append(Math.Round(surface_coords.Z, 2));
+                    comms_out.Append(Math.Round(target_coords.Z, 2));
                     comms_out.Append(":");
                     comms_out.Append("#FF1551");
+                    comms_out.Append(":");
+                    comms_out.Append(safe_position);
                     comms_out.Append(":");
 
                     copy_asteroid.Append("GPS");
