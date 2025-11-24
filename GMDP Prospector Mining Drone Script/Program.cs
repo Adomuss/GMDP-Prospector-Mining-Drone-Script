@@ -1065,7 +1065,7 @@ namespace IngameScript
 
                 copy_target.Append("GPS");
                 copy_target.Append(":");
-                copy_target.Append("TGT");
+                copy_target.Append("GRV");
                 copy_target.Append(":");
                 copy_target.Append(target_coords.X);
                 copy_target.Append(":");
