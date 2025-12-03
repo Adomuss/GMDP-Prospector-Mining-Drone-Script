@@ -27,7 +27,7 @@ namespace IngameScript
     {
 
         //program start
-        //Mining controller spotter drone V0.331A
+        //Mining controller spotter drone V0.500B
         #region mdk preserve
         public Program()
         {
@@ -60,7 +60,7 @@ namespace IngameScript
 
         int lcd_display_index = 0; //used for devices with multiple screen panels (0+) 
         #endregion
-        string version = "V0.331";
+        string version = "V0.500B";
         string drone_id_name = "";
         string tx_channel = "";
         string light_transmit_tag = "";
