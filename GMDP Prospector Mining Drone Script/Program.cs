@@ -63,12 +63,16 @@ namespace IngameScript
         string version = "V0.500B";
         string drone_id_name = "";
         string tx_channel = "";
+        string rx_channel = "";
+        IMyBroadcastListener listensync;
+        List<MyIGCMessage> syncMessagesBuffer;
         string light_transmit_tag = "";
         string light_target_tag = "";
         string lcd_display_name = "";
         string txl = "TX";
         string tgt = "TGT";
         string prospC = "prospector";
+        string syncC = "sync";
         string scan_camera = "scan";
         float t_stored_power;
         float stored_power_total;
@@ -159,8 +163,10 @@ namespace IngameScript
         int command_select = 0;
         double iterate_val = 0.1;
         int iterate_sel = 0;
-        
 
+        bool syncMessageReceived = false;
+        string syncDataInput = "";
+        bool scout_tag_changed = false;
         public void Save()
         {
             _Storage.Clear();            
@@ -185,62 +191,13 @@ namespace IngameScript
 
         }
 
-        private void ParseAndApplyArguments(string input)
-        {
-            // --- Step 1: Handle Empty Input (Using the simpler IsNullOrWhiteSpace check) ---
-            if (string.IsNullOrWhiteSpace(input))
-            {
-                Echo("No arguments provided, using defaults.");
-                drone_tag = "SWRM_D";
-                scout_tag = "PSMD"; //vessel/rig name (optional)
-                drone_id = 1;
-                return;
-            }
-
-            string[] dronecontrolleronfigdata = input.Split(',');
-
-            // Check if the split array is unexpectedly empty (though covered by the initial check)
-            if (dronecontrolleronfigdata.Length == 0)
-            {
-                Echo("No arguments provided, using defaults.");
-                // Use a consistent set of defaults or return immediately.
-                return;
-            }
-            if (dronecontrolleronfigdata.Length >= 1 && !string.IsNullOrWhiteSpace(dronecontrolleronfigdata[0]))
-            {
-                drone_tag = dronecontrolleronfigdata[0].ToString().Trim();
-            }
-            else
-            {
-                drone_tag = "SWRM_D"; // Default C if argument is missing or empty
-            }
-            if (dronecontrolleronfigdata.Length >= 2 && !string.IsNullOrWhiteSpace(dronecontrolleronfigdata[1]))
-            {
-                scout_tag = dronecontrolleronfigdata[1].ToString().Trim();
-            }
-            else
-            {
-                scout_tag = "PSMD"; // Default C if argument is missing or empty
-            }
-            if (dronecontrolleronfigdata.Length >= 3)
-            {
-                if (!int.TryParse(dronecontrolleronfigdata[2].ToString().Trim(), out drone_id))
-                {
-                    drone_id = 1; // Set to default on fail
-                }
-            }
-            else
-            {
-                drone_id = 1; // Default if argument is missing
-            }
-
-
-        }
         public void setup_system()
         {
             IMyGridTerminalSystem gts = GridTerminalSystem as IMyGridTerminalSystem;
             drone_id_name = "[" + scout_tag + " " + drone_id + "]";
             tx_channel = drone_tag + " " + prospC;
+            rx_channel = "[" + drone_tag + "]" + " " + syncC;
+            listensync = IGC.RegisterBroadcastListener(rx_channel);
             light_transmit_tag = "[" + scout_tag + " " + drone_id + " " + txl + "]";
             light_target_tag = "[" + scout_tag + " " + drone_id + " " + tgt + "]";
             lcd_display_name = "[" + scout_tag + " " + drone_id + " " + lcd_display_tag + "]";
@@ -264,6 +221,7 @@ namespace IngameScript
             thrust_tag = new List<IMyThrust>();
             connector_all = new List<IMyShipConnector>();
             connector_tag = new List<IMyShipConnector>();
+            syncMessagesBuffer = new List<MyIGCMessage>();
 
             string n = "";
             //find antennas with tag
@@ -385,9 +343,9 @@ namespace IngameScript
             {
                 for (int i = 0; i < display_all.Count; i++)
                 {
-                    if (display_all[i].CustomName.Contains(lcd_display_tag))
+                    if (display_all[i].CustomName.Contains(lcd_display_tag) || display_all[i].CustomName.Contains(lcd_display_name))
                     {
-                        display_all[i].CustomName = $"GMDP Interface Display {lcd_display_name} [{scout_tag}]";
+                        display_all[i].CustomName = $"GMDP Interface Display {lcd_display_name}";
                         display_tag_main.Add(display_all[i]);
                     }
                 }
@@ -510,6 +468,68 @@ namespace IngameScript
             setup_complete = true;
             Echo("Setup complete!");
         }
+        private void ManageCommunications()
+        {            
+                           
+            ProcessMessages();            
+        }
+
+        private void ProcessMessages()
+        {
+            #region check_drone_messages
+            //manage recieved communications
+            if (antenna_actual != null && antenna_tag[0] != null)
+            {
+                if (listensync.HasPendingMessage)
+                {
+                    MyIGCMessage droneMessageNew = listensync.AcceptMessage();
+                    syncMessagesBuffer.Add(droneMessageNew);
+                }
+                //process drone message list here
+                if (syncMessagesBuffer.Count > 0)
+                {
+                    syncMessageReceived = true;
+                }
+                else
+                {
+                    syncMessageReceived = false;
+                }
+
+                if (syncMessageReceived)
+                {
+                    //pull first message in the list if valid
+                    syncDataInput = syncMessagesBuffer[0].Data.ToString();
+                    ProcessDroneMessageData(syncDataInput);
+                    if (scout_tag_changed)
+                    {
+                        StoreDroneConfigData(antenna_actual);
+                    }
+                    if (syncMessagesBuffer.Count > 0 && syncMessageReceived)
+                    {
+                        syncMessagesBuffer.RemoveAt(0);
+                    }
+
+                }
+
+            }
+            #endregion
+        }
+
+        public void ProcessDroneMessageData(string input)
+        {
+            scout_tag_changed = false;
+
+            if (scout_tag != input)
+            {
+                scout_tag = input;
+                scout_tag_changed = true;
+            }
+            else
+            {
+               return;
+            }
+
+        }
         public void StoreDroneConfigData(IMyRadioAntenna block)
         {
             _DroneConf.Clear();
@@ -518,6 +538,7 @@ namespace IngameScript
             _DroneConf.Set("droneconfig", "drone id num", drone_id);
             _DroneConf.Set("droneconfig", "lcd display tag", lcd_display_tag);
             block.CustomData = _DroneConf.ToString();
+            
         }
         public void LoadDroneConfigData(string input, IMyRadioAntenna block)
         {
@@ -536,14 +557,14 @@ namespace IngameScript
                     {
                         drone_tag = "SWRM_D";
                     }
-                    str = _DroneConf.Get("droneconfig", "scout tag").ToString().Trim();
-                    if (!string.IsNullOrEmpty(str) && !string.IsNullOrWhiteSpace(str))
+                    str = _DroneConf.Get("droneconfig", "scout tag").ToString();
+                    if (!string.IsNullOrEmpty(str))
                     {
                         scout_tag = str;
                     }
                     else
                     {
-                        scout_tag = "PSMD";
+                        scout_tag = "";
                     }
 
                     str = _DroneConf.Get("droneconfig", "drone id num").ToString().Trim();
@@ -572,13 +593,15 @@ namespace IngameScript
             {
                 drone_id = 1;
                 drone_tag = "SWRM_D";
-                scout_tag = "PSMD";
+                scout_tag = " ";
                 lcd_display_tag = "D1";
                 StoreDroneConfigData(block);
             }
-            Echo($"Drone info: {scout_tag}:{drone_tag.Replace("[","[[").Replace("]","]]")}");
+            Echo($"Drone info: {scout_tag.Replace("[", "[[").Replace("]", "]]")}:{drone_tag.Replace("[","[[").Replace("]","]]")}");
             drone_id_name = "[" + scout_tag + " " + drone_id + "]";
             tx_channel = drone_tag + " " + prospC;
+            rx_channel = "[" + drone_tag + "]" + " " + syncC;
+            listensync = IGC.RegisterBroadcastListener(rx_channel);
             light_transmit_tag = "[" + scout_tag + " " + drone_id + " " + txl + "]";
             light_target_tag = "[" + scout_tag + " " + drone_id + " " + tgt + "]";
             lcd_display_name = "[" + scout_tag + " " + drone_id + " " + lcd_display_tag + "]";
@@ -732,7 +755,14 @@ namespace IngameScript
         }
         public void Main(string argument, UpdateType updateSource)
         {
-
+            if (antenna_actual != null)
+            {
+                if (scout_tag_changed)
+                {                    
+                    scout_tag_changed = false;
+                    setup_complete = false;
+                }
+            } 
             if (!setup_complete)
             {
                 setup_system();
@@ -740,11 +770,13 @@ namespace IngameScript
             }
 
             presence_check();
+            
             if (!setup_complete)
             {
                 Echo($"Setup incomplete. Terminating");
                 return;
             }
+            ManageCommunications();
 
             if (display_surface_1 != null)
             {
@@ -1364,7 +1396,7 @@ namespace IngameScript
 
             }
 
-            Echo($"Channel: {tx_channel.Replace("[", "[[").Replace("]", "]]")}");
+            Echo($"Channel: {tx_channel.Replace("[", "[[").Replace("]", "]]")}");            
             Echo("Target: " + surface_found);
             Echo("TX: " + target_coords.X + " TY: " + target_coords.Y + " TZ: " + target_coords.Z + " SafeD: " + safe_position + "m");
             Echo("Free scan: " + free_form);
@@ -1542,6 +1574,7 @@ namespace IngameScript
             Echo($"Drone info: {scout_tag}:{drone_tag}");
             drone_id_name = "[" + scout_tag + " " + drone_id + "]";
             tx_channel = drone_tag + " " + prospC;
+            rx_channel = "[" + drone_tag + "]" + " " + syncC;
             light_transmit_tag = "[" + scout_tag + " " + drone_id + " " + txl + "]";
             light_target_tag = "[" + scout_tag + " " + drone_id + " " + tgt + "]";
             lcd_display_name = "[" + scout_tag + " " + drone_id + " " + lcd_display_tag + "]";
