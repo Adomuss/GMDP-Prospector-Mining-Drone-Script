@@ -19,6 +19,7 @@ using VRage.Game.GUI.TextPanel;
 using VRage.Game.ModAPI.Ingame;
 using VRage.Game.ModAPI.Ingame.Utilities;
 using VRage.Game.ObjectBuilders.Definitions;
+using VRage.Profiler;
 using VRageMath;
 
 namespace IngameScript
@@ -125,6 +126,8 @@ namespace IngameScript
 
         List<IMyRadioAntenna> antenna_all;
         List<IMyRadioAntenna> antenna_tag;
+        List<IMyBeacon> beacons_all;
+        List<IMyBeacon> beacons_tag;
         List<IMyBatteryBlock> batteries_all;
         List<IMyBatteryBlock> batteries_tag;
         List<IMyRemoteControl> remote_control_all;
@@ -203,6 +206,8 @@ namespace IngameScript
             lcd_display_name = "[" + scout_tag + " " + drone_id + " " + lcd_display_tag + "]";
             antenna_all = new List<IMyRadioAntenna>();
             antenna_tag = new List<IMyRadioAntenna>();
+            beacons_all = new List<IMyBeacon>();
+            beacons_tag = new List<IMyBeacon>();
             batteries_all = new List<IMyBatteryBlock>();
             batteries_tag = new List<IMyBatteryBlock>();
             remote_control_all = new List<IMyRemoteControl>();
@@ -254,13 +259,40 @@ namespace IngameScript
                         }
                         n = $"Antenna {(i + 1)}";
                         antenna_all[i].CustomName = n + " " + drone_id_name + " " + "[" + tx_channel + "]";
+                        antenna_all[i].HudText = $"{drone_id_name} {prospC}";
+                        antenna_all[i].ShowShipName = true;
                         antenna_tag.Add(antenna_all[i]);
                     }
 
                 }
             }
             antenna_all.Clear();
-            
+
+            // find remote control block
+            gts.GetBlocksOfType<IMyBeacon>(beacons_all, b => b.CubeGrid == Me.CubeGrid);
+            if (beacons_all.Count > 0)
+            {
+                for (int i = 0; i < beacons_all.Count; i++)
+                {
+                    //create new array from search array with containers matching tag
+
+                    if (beacons_all[i].CustomName.Contains(drone_id_name))
+                    {
+                        n = $"Beacon {(i + 1)}";
+                        beacons_all[i].CustomName = n + " " + drone_id_name + " " + "[" + tx_channel + "]";
+                        beacons_tag.Add(beacons_all[i]);
+                    }
+                    if (!beacons_all[i].CustomName.Contains(drone_id_name))
+                    {
+                        n = $"Beacon {(i + 1)}";
+                        beacons_all[i].CustomName = n + " " + drone_id_name + " " + "[" + tx_channel + "]";
+                        beacons_all[i].HudText = $"{drone_id_name} {prospC}";
+                        beacons_tag.Add(beacons_all[i]);
+                    }
+
+                }
+            }
+            beacons_all.Clear();
             // find remote control block
             gts.GetBlocksOfType<IMyRemoteControl>(remote_control_all, b => b.CubeGrid == Me.CubeGrid);
             if (remote_control_all.Count > 0)
@@ -606,7 +638,7 @@ namespace IngameScript
             light_target_tag = "[" + scout_tag + " " + drone_id + " " + tgt + "]";
             lcd_display_name = "[" + scout_tag + " " + drone_id + " " + lcd_display_tag + "]";
             Me.CustomName = $"GMDP Programmable Block {drone_id_name} [{drone_tag}] {prospC}";
-
+            Me.CubeGrid.CustomName = $"{drone_id_name} {prospC} drone";
         }
         public void LoadStorageData(string input)
         {
@@ -1579,6 +1611,7 @@ namespace IngameScript
             light_target_tag = "[" + scout_tag + " " + drone_id + " " + tgt + "]";
             lcd_display_name = "[" + scout_tag + " " + drone_id + " " + lcd_display_tag + "]";
             Me.CustomName = $"GMDP Programmable Block {drone_id_name} [{drone_tag}] {prospC}";
+            Me.CubeGrid.CustomName = $"{drone_id_name} {prospC} drone";
         }
 
 
