@@ -61,7 +61,7 @@ namespace IngameScript
 
         int lcd_display_index = 0; //used for devices with multiple screen panels (0+) 
         #endregion
-        string version = "V0.500B";
+        string version = "V0.502B";
         string drone_id_name = "";
         string tx_channel = "";
         string rx_channel = "";
@@ -178,6 +178,7 @@ namespace IngameScript
             _Storage.Set("State", "scantype", scan_type);
             _Storage.Set("State", "raycast", raycast_scan_distance);
             Storage = _Storage.ToString();
+            _Storage.Clear();
         }
 
         public void manageFirstLoad(string input)
@@ -570,6 +571,7 @@ namespace IngameScript
             _DroneConf.Set("droneconfig", "drone id num", drone_id);
             _DroneConf.Set("droneconfig", "lcd display tag", lcd_display_tag);
             block.CustomData = _DroneConf.ToString();
+            _DroneConf.Clear();
             
         }
         public void LoadDroneConfigData(string input, IMyRadioAntenna block)
@@ -1465,7 +1467,7 @@ namespace IngameScript
 
             StringBuilder display_string = new StringBuilder();
             display_string.Append('\n');
-            display_string.Append($"GMDP {version} Running {icon} ({Math.Round((double)percent_battery_power,1)})%");
+            display_string.Append($"GMDP {version} {scout_tag} Running {icon} ({Math.Round((double)percent_battery_power,1)})%");
             display_string.Append('\n');
             display_string.Append($"Channel: {tx_channel}");
             display_string.Append('\n');
