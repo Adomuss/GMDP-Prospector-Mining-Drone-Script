@@ -28,7 +28,7 @@ namespace IngameScript
     {
 
         //program start
-        //Mining controller spotter drone V0.500B
+        //Mining controller spotter drone V0.504B
         #region mdk preserve
         public Program()
         {
@@ -61,7 +61,7 @@ namespace IngameScript
 
         int lcd_display_index = 0; //used for devices with multiple screen panels (0+) 
         #endregion
-        string version = "V0.502B";
+        string version = "V0.504B";
         string drone_id_name = "";
         string tx_channel = "";
         string rx_channel = "";
@@ -90,7 +90,7 @@ namespace IngameScript
         bool free_form = false;
         bool enable_asteroid_detection;
         double distance_scan = 0.0;
-        string data_out;
+        //string data_out;
         string temp_id_scout;
         string temp_id_name;
         int temp_id_num;
@@ -1307,127 +1307,51 @@ namespace IngameScript
 
 
 
-            if (argument.Contains(send_cmd) && scan_complete == true && transmit_complete == false|| command_send && scan_complete == true && transmit_complete == false)
+            if (argument.Contains(send_cmd) && scan_complete && !transmit_complete || command_send && scan_complete && !transmit_complete)
             {
                 command_send = false;
-                StringBuilder comms_out = new StringBuilder();
-                StringBuilder copy_target = new StringBuilder();
-                StringBuilder copy_asteroid = new StringBuilder();
-                comms_out.Clear();
-                copy_target.Clear();
-                comms_out.Append("GPS");
-                comms_out.Append(":");
-                comms_out.Append("TGT");
-                comms_out.Append(":");
-                comms_out.Append(target_coords.X);
-                comms_out.Append(":");
-                comms_out.Append(target_coords.Y);
-                comms_out.Append(":");
-                comms_out.Append(target_coords.Z);
-                comms_out.Append(":");
-                comms_out.Append("#FF75C9F1");
-                comms_out.Append(":");
-                comms_out.Append(safe_position);
-                comms_out.Append(":");
 
-                copy_target.Append("GPS");
-                copy_target.Append(":");
-                copy_target.Append("GRV");
-                copy_target.Append(":");
-                copy_target.Append(Math.Round(gravity_coords.X, 2));
-                copy_target.Append(":");
-                copy_target.Append(Math.Round(gravity_coords.Y, 2));
-                copy_target.Append(":");
-                copy_target.Append(Math.Round(gravity_coords.Z, 2));
-                copy_target.Append(":");
-                copy_target.Append("#FF75C9F1");
-                copy_target.Append(":");
-                remote_control_actual.CustomData = copy_target.ToString();
+                MyIni ini = new MyIni();
 
-                if (asteroidsDetected == true)
-                {
-                    comms_out.Clear();
-                    copy_asteroid.Clear();
-                    comms_out.Append("GPS");
-                    comms_out.Append(":");
-                    comms_out.Append("AST");
-                    comms_out.Append(":");
-                    comms_out.Append(Math.Round(target_coords.X, 2));
-                    comms_out.Append(":");
-                    comms_out.Append(Math.Round(target_coords.Y, 2));
-                    comms_out.Append(":");
-                    comms_out.Append(Math.Round(target_coords.Z, 2));
-                    comms_out.Append(":");
-                    comms_out.Append("#FF1551");
-                    comms_out.Append(":");
-                    comms_out.Append(safe_position);
-                    comms_out.Append(":");
+                // Main target
+                ini.Set("ProspectorJob", "JobName", asteroidsDetected ? "Asteroid" : (free_form ? "Free Align" : "Planet Surface"));
+                ini.Set("ProspectorJob", "X", Math.Round(target_coords.X, 2));
+                ini.Set("ProspectorJob", "Y", Math.Round(target_coords.Y, 2));
+                ini.Set("ProspectorJob", "Z", Math.Round(target_coords.Z, 2));
+                ini.Set("ProspectorJob", "Color", asteroidsDetected ? "#FF1551" : "#FF75C9F1");
 
-                    copy_asteroid.Append("GPS");
-                    copy_asteroid.Append(":");
-                    copy_asteroid.Append("AST");
-                    copy_asteroid.Append(":");
-                    copy_asteroid.Append(Math.Round(asteroid_coords.X, 2));
-                    copy_asteroid.Append(":");
-                    copy_asteroid.Append(Math.Round(asteroid_coords.Y, 2));
-                    copy_asteroid.Append(":");
-                    copy_asteroid.Append(Math.Round(asteroid_coords.Z, 2));
-                    copy_asteroid.Append(":");
-                    copy_asteroid.Append("#FF1551");
-                    copy_asteroid.Append(":");
-                    remote_control_actual.CustomData = copy_asteroid.ToString();
-                }
-
-                if (free_form == true)
-                {
-                    comms_out.Clear();
-                    copy_asteroid.Clear();
-                    comms_out.Append("GPS");
-                    comms_out.Append(":");
-                    comms_out.Append("FRE");
-                    comms_out.Append(":");
-                    comms_out.Append(Math.Round(target_coords.X, 2));
-                    comms_out.Append(":");
-                    comms_out.Append(Math.Round(target_coords.Y, 2));
-                    comms_out.Append(":");
-                    comms_out.Append(Math.Round(target_coords.Z, 2));
-                    comms_out.Append(":");
-                    comms_out.Append("#FF1551");
-                    comms_out.Append(":");
-                    comms_out.Append(safe_position);
-                    comms_out.Append(":");
-
-                    copy_asteroid.Append("GPS");
-                    copy_asteroid.Append(":");
-                    copy_asteroid.Append("FRE");
-                    copy_asteroid.Append(":");
-                    copy_asteroid.Append(Math.Round(free_centre_target_coords.X, 2));
-                    copy_asteroid.Append(":");
-                    copy_asteroid.Append(Math.Round(free_centre_target_coords.Y, 2));
-                    copy_asteroid.Append(":");
-                    copy_asteroid.Append(Math.Round(free_centre_target_coords.Z, 2));
-                    copy_asteroid.Append(":");
-                    copy_asteroid.Append("#FF1551");
-                    copy_asteroid.Append(":");
-                    remote_control_actual.CustomData = copy_asteroid.ToString();
-                }
-                
-                Me.CustomData = comms_out.ToString();
-                if(free_form || asteroidsDetected)
-                {
-                    data_out = comms_out + copy_asteroid.ToString(); ;
-                }
+                // Alignment target
+                Vector3D alignTarget = Vector3D.Zero;
+                if (asteroidsDetected)
+                    alignTarget = asteroid_coords;
+                else if (free_form)
+                    alignTarget = free_centre_target_coords;
                 else
-                {
-                    data_out = comms_out + copy_target.ToString();
-                }                
+                    alignTarget = gravity_coords;
 
-                IGC.SendBroadcastMessage(tx_channel, data_out, TransmissionDistance.TransmissionDistanceMax);
-                //build data string to for mining controller and transmit via IGC
+                if (alignTarget != Vector3D.Zero)
+                {
+                    ini.Set("Alignment", "Enabled", true);
+                    ini.Set("Alignment", "X", Math.Round(alignTarget.X, 2));
+                    ini.Set("Alignment", "Y", Math.Round(alignTarget.Y, 2));
+                    ini.Set("Alignment", "Z", Math.Round(alignTarget.Z, 2));
+                    ini.Set("Alignment", "SafeDistance", safe_position);
+                }
+
+                string message = ini.ToString();
+
+                // Send via IGC
+                IGC.SendBroadcastMessage(tx_channel, message, TransmissionDistance.TransmissionDistanceMax);
+
+                // Also write to Remote Control CustomData for backup/visual
+                remote_control_actual.CustomData = message;
+
+                // Legacy fallback: keep old GPS in Me.CustomData for old controllers
+                Me.CustomData = $"GPS:TGT:{target_coords.X:F2}:{target_coords.Y:F2}:{target_coords.Z:F2}:#FF75C9F1:{safe_position}:";
+
                 transmit_complete = true;
                 target_transmit_light_actual.Enabled = true;
-                Echo("Data sent.");
-
+                Echo("INI Job sent to controller!");
             }
 
             Echo($"Channel: {tx_channel.Replace("[", "[[").Replace("]", "]]")}");            
