@@ -28,7 +28,7 @@ namespace IngameScript
     {
 
         //program start
-        //Mining controller spotter drone V0.504B
+        //Mining controller spotter drone V0.500B
         #region mdk preserve
         public Program()
         {
@@ -61,7 +61,7 @@ namespace IngameScript
 
         int lcd_display_index = 0; //used for devices with multiple screen panels (0+) 
         #endregion
-        string version = "V0.504B";
+        string version = "V0.502B";
         string drone_id_name = "";
         string tx_channel = "";
         string rx_channel = "";
@@ -90,7 +90,7 @@ namespace IngameScript
         bool free_form = false;
         bool enable_asteroid_detection;
         double distance_scan = 0.0;
-        //string data_out;
+        string data_out;
         string temp_id_scout;
         string temp_id_name;
         int temp_id_num;
@@ -147,7 +147,7 @@ namespace IngameScript
         List<IMyTerminalBlock> display_all;
         List<IMyTerminalBlock> display_tag_main;
         IMyTextSurface display_surface_1;
-        
+
         MyIni _Storage = new MyIni();
         MyIni _DroneConf = new MyIni();
         float percent_battery_power = 0.0f;
@@ -172,7 +172,7 @@ namespace IngameScript
         bool scout_tag_changed = false;
         public void Save()
         {
-            _Storage.Clear();            
+            _Storage.Clear();
             _Storage.Set("State", "Safedistance", safe_position);
             _Storage.Set("State", "freecenterposition", free_center_position);
             _Storage.Set("State", "scantype", scan_type);
@@ -185,7 +185,7 @@ namespace IngameScript
         {
             if (!string.IsNullOrWhiteSpace(input) && !string.IsNullOrEmpty(input))
             {
-                LoadStorageData(input);                
+                LoadStorageData(input);
                 Echo("Configuration loaded from Storage.");
             }
             else
@@ -502,9 +502,9 @@ namespace IngameScript
             Echo("Setup complete!");
         }
         private void ManageCommunications()
-        {            
-                           
-            ProcessMessages();            
+        {
+
+            ProcessMessages();
         }
 
         private void ProcessMessages()
@@ -559,7 +559,7 @@ namespace IngameScript
             }
             else
             {
-               return;
+                return;
             }
 
         }
@@ -572,7 +572,7 @@ namespace IngameScript
             _DroneConf.Set("droneconfig", "lcd display tag", lcd_display_tag);
             block.CustomData = _DroneConf.ToString();
             _DroneConf.Clear();
-            
+
         }
         public void LoadDroneConfigData(string input, IMyRadioAntenna block)
         {
@@ -631,7 +631,7 @@ namespace IngameScript
                 lcd_display_tag = "D1";
                 StoreDroneConfigData(block);
             }
-            Echo($"Drone info: {scout_tag.Replace("[", "[[").Replace("]", "]]")}:{drone_tag.Replace("[","[[").Replace("]","]]")}");
+            Echo($"Drone info: {scout_tag.Replace("[", "[[").Replace("]", "]]")}:{drone_tag.Replace("[", "[[").Replace("]", "]]")}");
             drone_id_name = "[" + scout_tag + " " + drone_id + "]";
             tx_channel = drone_tag + " " + prospC;
             rx_channel = "[" + drone_tag + "]" + " " + syncC;
@@ -681,7 +681,7 @@ namespace IngameScript
                     {
                         scan_type = 2;
                     }
-                    str = _Storage.Get("State","raycast").ToString().Trim();
+                    str = _Storage.Get("State", "raycast").ToString().Trim();
                     if (double.TryParse(str, out raycast_scan_distance))
                     {
                         double.TryParse(str, out raycast_scan_distance);
@@ -792,11 +792,11 @@ namespace IngameScript
             if (antenna_actual != null)
             {
                 if (scout_tag_changed)
-                {                    
+                {
                     scout_tag_changed = false;
                     setup_complete = false;
                 }
-            } 
+            }
             if (!setup_complete)
             {
                 setup_system();
@@ -804,7 +804,7 @@ namespace IngameScript
             }
 
             presence_check();
-            
+
             if (!setup_complete)
             {
                 Echo($"Setup incomplete. Terminating");
@@ -830,7 +830,8 @@ namespace IngameScript
             percent_battery_power = 0.0f;
             for (int i = 0; i < batteries_tag.Count; i++)
             {
-                if (batteries_tag[i] != null) {
+                if (batteries_tag[i] != null)
+                {
                     currentbatteryblock = batteries_tag[i];
                     //record stored and max battery capacity
                     t_stored_power = currentbatteryblock.CurrentStoredPower;
@@ -883,7 +884,7 @@ namespace IngameScript
                 }
                 if (item_value_menu == 2 && scan_type == 1)
                 {
-                    item_value_menu=3;
+                    item_value_menu = 3;
                 }
                 if (item_value_menu > 4)
                 {
@@ -891,9 +892,9 @@ namespace IngameScript
                 }
                 if (item_value_menu < 1)
                 {
-                    item_value_menu = 4;                    
-                }  
-            }            
+                    item_value_menu = 4;
+                }
+            }
 
             if (argument.Contains(iterate_cmd))
             {
@@ -976,7 +977,7 @@ namespace IngameScript
             }
             if (iterate_sel == 3)
             {
-                iterate_val =100.0;
+                iterate_val = 100.0;
             }
             if (iterate_sel == 4)
             {
@@ -1002,7 +1003,7 @@ namespace IngameScript
             }
             if (argument.Contains(up_val) && item_value_menu == 2)
             {
-                free_center_position+= iterate_val;
+                free_center_position += iterate_val;
                 if (free_center_position < 0.0)
                 {
                     free_center_position = 0.0;
@@ -1100,7 +1101,7 @@ namespace IngameScript
                 {
                     command_scan = true;
                 }
-                item_value_menu=0;
+                item_value_menu = 0;
                 if (confirm_pressed)
                 {
                     confirm_pressed = false;
@@ -1150,7 +1151,7 @@ namespace IngameScript
                 Echo("Transmission reset.");
                 target_aquired_light_actual.Enabled = false;
                 target_transmit_light_actual.Enabled = false;
-                asteroidsDetected = false;                
+                asteroidsDetected = false;
                 surface_found = false;
                 command_reset = false;
             }
@@ -1164,9 +1165,9 @@ namespace IngameScript
                     if (hitinfocamera.IsEmpty())
                     {
                         Echo($"Mining surface not found within: '{raycast_scan_distance}'m.");
-                        surface_coords.X = Math.Round(remote_control_actual.GetPosition().X,2);
-                        surface_coords.Z = Math.Round(remote_control_actual.GetPosition().Y,2);
-                        surface_coords.Y = Math.Round(remote_control_actual.GetPosition().Z,2);
+                        surface_coords.X = Math.Round(remote_control_actual.GetPosition().X, 2);
+                        surface_coords.Z = Math.Round(remote_control_actual.GetPosition().Y, 2);
+                        surface_coords.Y = Math.Round(remote_control_actual.GetPosition().Z, 2);
                         surface_found = false;
                     }
 
@@ -1174,9 +1175,9 @@ namespace IngameScript
                     {
                         distance_scan = (hitinfocamera.HitPosition.Value - camera_actual.GetPosition()).Length();
                         Echo($"Surface found'{distance_scan}'m.");
-                        surface_coords.X = Math.Round(hitinfocamera.HitPosition.Value.X,2);
-                        surface_coords.Y = Math.Round(hitinfocamera.HitPosition.Value.Y,2);
-                        surface_coords.Z = Math.Round(hitinfocamera.HitPosition.Value.Z,2);
+                        surface_coords.X = Math.Round(hitinfocamera.HitPosition.Value.X, 2);
+                        surface_coords.Y = Math.Round(hitinfocamera.HitPosition.Value.Y, 2);
+                        surface_coords.Z = Math.Round(hitinfocamera.HitPosition.Value.Z, 2);
                         surface_found = true;
                     }
 
@@ -1242,7 +1243,7 @@ namespace IngameScript
 
                         target_aquired_light_actual.Enabled = true;
                         target_transmit_light_actual.Enabled = false;
-                        
+
                     } // surface found
 
                 } // scan complete
@@ -1307,54 +1308,130 @@ namespace IngameScript
 
 
 
-            if (argument.Contains(send_cmd) && scan_complete && !transmit_complete || command_send && scan_complete && !transmit_complete)
+            if (argument.Contains(send_cmd) && scan_complete == true && transmit_complete == false || command_send && scan_complete == true && transmit_complete == false)
             {
                 command_send = false;
+                StringBuilder comms_out = new StringBuilder();
+                StringBuilder copy_target = new StringBuilder();
+                StringBuilder copy_asteroid = new StringBuilder();
+                comms_out.Clear();
+                copy_target.Clear();
+                comms_out.Append("GPS");
+                comms_out.Append(":");
+                comms_out.Append("TGT");
+                comms_out.Append(":");
+                comms_out.Append(target_coords.X);
+                comms_out.Append(":");
+                comms_out.Append(target_coords.Y);
+                comms_out.Append(":");
+                comms_out.Append(target_coords.Z);
+                comms_out.Append(":");
+                comms_out.Append("#FF75C9F1");
+                comms_out.Append(":");
+                comms_out.Append(safe_position);
+                comms_out.Append(":");
 
-                MyIni ini = new MyIni();
+                copy_target.Append("GPS");
+                copy_target.Append(":");
+                copy_target.Append("GRV");
+                copy_target.Append(":");
+                copy_target.Append(Math.Round(gravity_coords.X, 2));
+                copy_target.Append(":");
+                copy_target.Append(Math.Round(gravity_coords.Y, 2));
+                copy_target.Append(":");
+                copy_target.Append(Math.Round(gravity_coords.Z, 2));
+                copy_target.Append(":");
+                copy_target.Append("#FF75C9F1");
+                copy_target.Append(":");
+                remote_control_actual.CustomData = copy_target.ToString();
 
-                // Main target
-                ini.Set("ProspectorJob", "JobName", asteroidsDetected ? "Asteroid" : (free_form ? "Free Align" : "Planet Surface"));
-                ini.Set("ProspectorJob", "X", Math.Round(target_coords.X, 2));
-                ini.Set("ProspectorJob", "Y", Math.Round(target_coords.Y, 2));
-                ini.Set("ProspectorJob", "Z", Math.Round(target_coords.Z, 2));
-                ini.Set("ProspectorJob", "Color", asteroidsDetected ? "#FF1551" : "#FF75C9F1");
-
-                // Alignment target
-                Vector3D alignTarget = Vector3D.Zero;
-                if (asteroidsDetected)
-                    alignTarget = asteroid_coords;
-                else if (free_form)
-                    alignTarget = free_centre_target_coords;
-                else
-                    alignTarget = gravity_coords;
-
-                if (alignTarget != Vector3D.Zero)
+                if (asteroidsDetected == true)
                 {
-                    ini.Set("Alignment", "Enabled", true);
-                    ini.Set("Alignment", "X", Math.Round(alignTarget.X, 2));
-                    ini.Set("Alignment", "Y", Math.Round(alignTarget.Y, 2));
-                    ini.Set("Alignment", "Z", Math.Round(alignTarget.Z, 2));
-                    ini.Set("Alignment", "SafeDistance", safe_position);
+                    comms_out.Clear();
+                    copy_asteroid.Clear();
+                    comms_out.Append("GPS");
+                    comms_out.Append(":");
+                    comms_out.Append("AST");
+                    comms_out.Append(":");
+                    comms_out.Append(Math.Round(target_coords.X, 2));
+                    comms_out.Append(":");
+                    comms_out.Append(Math.Round(target_coords.Y, 2));
+                    comms_out.Append(":");
+                    comms_out.Append(Math.Round(target_coords.Z, 2));
+                    comms_out.Append(":");
+                    comms_out.Append("#FF1551");
+                    comms_out.Append(":");
+                    comms_out.Append(safe_position);
+                    comms_out.Append(":");
+
+                    copy_asteroid.Append("GPS");
+                    copy_asteroid.Append(":");
+                    copy_asteroid.Append("AST");
+                    copy_asteroid.Append(":");
+                    copy_asteroid.Append(Math.Round(asteroid_coords.X, 2));
+                    copy_asteroid.Append(":");
+                    copy_asteroid.Append(Math.Round(asteroid_coords.Y, 2));
+                    copy_asteroid.Append(":");
+                    copy_asteroid.Append(Math.Round(asteroid_coords.Z, 2));
+                    copy_asteroid.Append(":");
+                    copy_asteroid.Append("#FF1551");
+                    copy_asteroid.Append(":");
+                    remote_control_actual.CustomData = copy_asteroid.ToString();
                 }
 
-                string message = ini.ToString();
+                if (free_form == true)
+                {
+                    comms_out.Clear();
+                    copy_asteroid.Clear();
+                    comms_out.Append("GPS");
+                    comms_out.Append(":");
+                    comms_out.Append("FRE");
+                    comms_out.Append(":");
+                    comms_out.Append(Math.Round(target_coords.X, 2));
+                    comms_out.Append(":");
+                    comms_out.Append(Math.Round(target_coords.Y, 2));
+                    comms_out.Append(":");
+                    comms_out.Append(Math.Round(target_coords.Z, 2));
+                    comms_out.Append(":");
+                    comms_out.Append("#FF1551");
+                    comms_out.Append(":");
+                    comms_out.Append(safe_position);
+                    comms_out.Append(":");
 
-                // Send via IGC
-                IGC.SendBroadcastMessage(tx_channel, message, TransmissionDistance.TransmissionDistanceMax);
+                    copy_asteroid.Append("GPS");
+                    copy_asteroid.Append(":");
+                    copy_asteroid.Append("FRE");
+                    copy_asteroid.Append(":");
+                    copy_asteroid.Append(Math.Round(free_centre_target_coords.X, 2));
+                    copy_asteroid.Append(":");
+                    copy_asteroid.Append(Math.Round(free_centre_target_coords.Y, 2));
+                    copy_asteroid.Append(":");
+                    copy_asteroid.Append(Math.Round(free_centre_target_coords.Z, 2));
+                    copy_asteroid.Append(":");
+                    copy_asteroid.Append("#FF1551");
+                    copy_asteroid.Append(":");
+                    remote_control_actual.CustomData = copy_asteroid.ToString();
+                }
 
-                // Also write to Remote Control CustomData for backup/visual
-                remote_control_actual.CustomData = message;
+                Me.CustomData = comms_out.ToString();
+                if (free_form || asteroidsDetected)
+                {
+                    data_out = comms_out + copy_asteroid.ToString(); ;
+                }
+                else
+                {
+                    data_out = comms_out + copy_target.ToString();
+                }
 
-                // Legacy fallback: keep old GPS in Me.CustomData for old controllers
-                Me.CustomData = $"GPS:TGT:{target_coords.X:F2}:{target_coords.Y:F2}:{target_coords.Z:F2}:#FF75C9F1:{safe_position}:";
-
+                IGC.SendBroadcastMessage(tx_channel, data_out, TransmissionDistance.TransmissionDistanceMax);
+                //build data string to for mining controller and transmit via IGC
                 transmit_complete = true;
                 target_transmit_light_actual.Enabled = true;
-                Echo("INI Job sent to controller!");
+                Echo("Data sent.");
+
             }
 
-            Echo($"Channel: {tx_channel.Replace("[", "[[").Replace("]", "]]")}");            
+            Echo($"Channel: {tx_channel.Replace("[", "[[").Replace("]", "]]")}");
             Echo("Target: " + surface_found);
             Echo("TX: " + target_coords.X + " TY: " + target_coords.Y + " TZ: " + target_coords.Z + " SafeD: " + safe_position + "m");
             Echo("Free scan: " + free_form);
@@ -1391,7 +1468,7 @@ namespace IngameScript
 
             StringBuilder display_string = new StringBuilder();
             display_string.Append('\n');
-            display_string.Append($"GMDP {version} {scout_tag} Running {icon} ({Math.Round((double)percent_battery_power,1)})%");
+            display_string.Append($"GMDP {version} {scout_tag} Running {icon} ({Math.Round((double)percent_battery_power, 1)})%");
             display_string.Append('\n');
             display_string.Append($"Channel: {tx_channel}");
             display_string.Append('\n');
