@@ -28,7 +28,7 @@ namespace IngameScript
     {
 
         //program start
-        //Mining controller spotter drone V0.500B
+        //Mining controller spotter drone V0.504B
         #region mdk preserve
         public Program()
         {
@@ -61,7 +61,7 @@ namespace IngameScript
 
         int lcd_display_index = 0; //used for devices with multiple screen panels (0+) 
         #endregion
-        string version = "V0.502B";
+        string version = "V0.504B";
         string drone_id_name = "";
         string tx_channel = "";
         string rx_channel = "";
@@ -150,6 +150,8 @@ namespace IngameScript
 
         MyIni _Storage = new MyIni();
         MyIni _DroneConf = new MyIni();
+        MyIni _customDataStore = new MyIni();
+        MyIni _commsData = new MyIni();
         float percent_battery_power = 0.0f;
         bool setup_complete = false;
         string sel_left_1 = "";
@@ -170,6 +172,12 @@ namespace IngameScript
         bool syncMessageReceived = false;
         string syncDataInput = "";
         bool scout_tag_changed = false;
+        string jobinfo = "Jobinfo";
+        string gmdccategory = "GMDCJobData";
+        //string gmdpcategory = "GMDPJobData";
+        string rcjobinfo = "Jobinfo";
+        //string prospectmain = "maindata";
+        //string prospecttarget = "aligndata";
         public void Save()
         {
             _Storage.Clear();
@@ -1343,7 +1351,8 @@ namespace IngameScript
                 copy_target.Append(":");
                 copy_target.Append("#FF75C9F1");
                 copy_target.Append(":");
-                remote_control_actual.CustomData = copy_target.ToString();
+                StoreRCJobData(remote_control_actual, copy_target.ToString());
+                //remote_control_actual.CustomData = copy_target.ToString();
 
                 if (asteroidsDetected == true)
                 {
@@ -1376,7 +1385,8 @@ namespace IngameScript
                     copy_asteroid.Append(":");
                     copy_asteroid.Append("#FF1551");
                     copy_asteroid.Append(":");
-                    remote_control_actual.CustomData = copy_asteroid.ToString();
+                    StoreRCJobData(remote_control_actual, copy_asteroid.ToString());
+                    //remote_control_actual.CustomData = copy_asteroid.ToString();
                 }
 
                 if (free_form == true)
@@ -1410,19 +1420,27 @@ namespace IngameScript
                     copy_asteroid.Append(":");
                     copy_asteroid.Append("#FF1551");
                     copy_asteroid.Append(":");
-                    remote_control_actual.CustomData = copy_asteroid.ToString();
+                    StoreRCJobData(remote_control_actual, copy_asteroid.ToString());
+                    //remote_control_actual.CustomData = copy_asteroid.ToString();
                 }
+                StoreJobData(Me, comms_out.ToString());
+                //Me.CustomData = comms_out.ToString();
 
-                Me.CustomData = comms_out.ToString();
+                _commsData.Clear();
                 if (free_form || asteroidsDetected)
                 {
                     data_out = comms_out + copy_asteroid.ToString(); ;
+                  //  _commsData.Set(gmdpcategory, prospectmain, comms_out.ToString().Trim());
+                   // _commsData.Set(gmdpcategory, prospecttarget, copy_asteroid.ToString().Trim());
                 }
                 else
                 {
                     data_out = comms_out + copy_target.ToString();
-                }
-
+                   // _commsData.Set(gmdpcategory, prospectmain, comms_out.ToString().Trim());
+                   // _commsData.Set(gmdpcategory, prospecttarget, copy_target.ToString().Trim());
+                }                
+                comms_out.Clear();
+                copy_target.Clear();
                 IGC.SendBroadcastMessage(tx_channel, data_out, TransmissionDistance.TransmissionDistanceMax);
                 //build data string to for mining controller and transmit via IGC
                 transmit_complete = true;
@@ -1617,6 +1635,21 @@ namespace IngameScript
             Me.CubeGrid.CustomName = $"{drone_id_name} {prospC} drone";
         }
 
+        void StoreJobData(IMyTerminalBlock block, string input)
+        {
+            _customDataStore.Clear();
+            _customDataStore.Set(gmdccategory, jobinfo, input);
+            block.CustomData = _customDataStore.ToString();
+            _customDataStore.Clear();
+        }
+
+        void StoreRCJobData(IMyTerminalBlock block, string input)
+        {
+            _customDataStore.Clear();
+            _customDataStore.Set(gmdccategory, rcjobinfo, input);
+            block.CustomData = _customDataStore.ToString();
+            _customDataStore.Clear();
+        }
 
         void runicon(int state)
         {
