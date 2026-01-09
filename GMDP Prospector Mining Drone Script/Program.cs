@@ -61,7 +61,7 @@ namespace IngameScript
 
         int lcd_display_index = 0; //used for devices with multiple screen panels (0+) 
         #endregion
-        string version = "V0.504B";
+        string version = "V0.505B";
         string drone_id_name = "";
         string tx_channel = "";
         string rx_channel = "";
@@ -75,6 +75,7 @@ namespace IngameScript
         string prospC = "prospector";
         string syncC = "sync";
         string scan_camera = "scan";
+        string scan_sensor = "scan";
         float t_stored_power;
         float stored_power_total;
         float t_max_power;
@@ -315,6 +316,7 @@ namespace IngameScript
                         n = $"Remote Control {(i + 1)}";
                         remote_control_all[i].CustomName = n + " " + drone_id_name + " " + "[" + tx_channel + "]";
                         remote_control_tag.Add(remote_control_all[i]);
+                        break;
                     }
                     if (!remote_control_all[i].CustomName.Contains(drone_id_name))
                     {
@@ -341,12 +343,6 @@ namespace IngameScript
                         camera_tag.Add(camera_all[i]);
                         camera_scan.Add(camera_all[i]);
                         break;
-                    }
-                    if (!camera_all[i].CustomName.Contains(scan_camera))
-                    {
-                        n = $"Camera {(i + 1)}";
-                        camera_all[i].CustomName = n + " " + drone_id_name + " " + "[" + tx_channel + "]";
-                        camera_tag.Add(camera_all[i]);
                     }
                 }
             }
@@ -442,19 +438,13 @@ namespace IngameScript
 
                 for (int i = 0; i < sensor_all.Count; i++)
                 {
-                    if (sensor_all[i].CustomName.Contains(drone_id_name))
+                    if (sensor_all[i].CustomName.Contains(scan_sensor))
                     {
                         n = $"Sensor {(i + 1)}";
-                        sensor_all[i].CustomName = n + " " + drone_id_name + " " + "[" + tx_channel + "]";
+                        sensor_all[i].CustomName = n + " " + drone_id_name + " " + "[" + tx_channel + "]" + scan_sensor;
                         sensor_tag.Add(sensor_all[i]);
+                        break;
                     }
-                    if (!sensor_all[i].CustomName.Contains(drone_id_name))
-                    {
-                        n = $"Sensor {(i + 1)}";
-                        sensor_all[i].CustomName = n + " " + drone_id_name + " " + "[" + tx_channel + "]";
-                        sensor_tag.Add(sensor_all[i]);
-                    }
-
                 }
             }
             sensor_all.Clear();
@@ -490,6 +480,7 @@ namespace IngameScript
                         n = $"Connector {(i + 1)}";
                         connector_all[i].CustomName = n + " " + drone_id_name + " " + "[" + tx_channel + "]";
                         connector_tag.Add(connector_all[i]);
+                        
                     }
                     if (!connector_all[i].CustomName.Contains(drone_id_name))
                     {
@@ -504,7 +495,7 @@ namespace IngameScript
             if (display_tag_main.Count > 0)
             {
                 display_surface_1 = ((IMyTextSurfaceProvider)display_tag_main[0]).GetSurface(lcd_display_index);
-                Echo($"LCD display: '{lcd_display_name}' found.");
+                Echo($"LCD display: '{lcd_display_name.Replace("[", "[[").Replace("]", "]]")}' found.");
             }
             setup_complete = true;
             Echo("Setup complete!");
@@ -774,7 +765,7 @@ namespace IngameScript
 
             if (sensor_tag.Count <= 0 || sensor_tag[0] == null)
             {
-                Echo($"Sensor with tag: '{drone_id_name.Replace("[", "[[").Replace("]", "]]")}' not found.");
+                Echo($"Sensor with tag: '{scan_sensor.Replace("[", "[[").Replace("]", "]]")}' not found. Please add tag to scanning sensor");
                 setup_complete = false;
                 return;
             }
