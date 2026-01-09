@@ -416,19 +416,6 @@ namespace IngameScript
                     }
                 }
 
-                for (int i = 0; i < lighting_all.Count; i++)
-                {
-                    //create new array from search array with lights matching tag
-                    if (!lighting_all[i].CustomName.Contains(tgt))
-                    {
-                        if (!lighting_all[i].CustomName.Contains(txl))
-                        {
-                            n = $"Interior light {(i + 1)}";
-                            lighting_all[i].CustomName = $"{n} {drone_id_name}";
-                            lighting_target_aquired.Add(lighting_all[i]);
-                        }
-                    }
-                }
             }
             lighting_all.Clear();
             //find sensors with tag
