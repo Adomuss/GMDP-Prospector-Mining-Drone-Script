@@ -61,7 +61,7 @@ namespace IngameScript
 
         int lcd_display_index = 0; //used for devices with multiple screen panels (0+) 
         #endregion
-        string version = "V0.505B";
+        string version = "V0.506B";
         string drone_id_name = "";
         string tx_channel = "";
         string rx_channel = "";
@@ -92,8 +92,8 @@ namespace IngameScript
         bool enable_asteroid_detection;
         double distance_scan = 0.0;
         string data_out;
-        string temp_id_scout;
-        string temp_id_name;
+        //string temp_id_scout;
+        //string temp_id_name;
         int temp_id_num;
         int stateshift = 0;
         string icon = "";
@@ -179,6 +179,7 @@ namespace IngameScript
         string rcjobinfo = "Jobinfo";
         //string prospectmain = "maindata";
         //string prospecttarget = "aligndata";
+        StringBuilder sbtexttemp = new StringBuilder();
         public void Save()
         {
             _Storage.Clear();
@@ -195,11 +196,11 @@ namespace IngameScript
             if (!string.IsNullOrWhiteSpace(input) && !string.IsNullOrEmpty(input))
             {
                 LoadStorageData(input);
-                Echo("Configuration loaded from Storage.");
+                sbtexttemp.AppendLine("Configuration loaded from Storage.");
             }
             else
             {
-                Echo("No Storage data found, configuration loaded from arguments or defaults.");
+                sbtexttemp.AppendLine("No Storage data found, configuration loaded from arguments or defaults.");
             }
 
         }
@@ -251,7 +252,7 @@ namespace IngameScript
                         LoadDroneConfigData(checker, antenna_all[i]);
                         if (string.IsNullOrEmpty(drone_tag) || string.IsNullOrWhiteSpace(drone_tag))
                         {
-                            Echo($"Invalid name for drone_tag {drone_tag.Replace("[", "[[").Replace("]", "]]")}. Please add drone tag to antenna e.g. '1:PSMD:SWRM_D', '<drone_id>:<prospector_drone_name>:<drone_group_tag>'");
+                            sbtexttemp.AppendLine($"Invalid name for drone_tag {drone_tag.Replace("[", "[[").Replace("]", "]]")}. Please add drone tag to antenna e.g. '1:PSMD:SWRM_D', '<drone_id>:<prospector_drone_name>:<drone_group_tag>'");
                             return;
                         }
                         n = $"Antenna {(i + 1)}";
@@ -264,7 +265,7 @@ namespace IngameScript
                         LoadDroneConfigData(checker, antenna_all[i]);
                         if (drone_tag == "" || drone_tag == null)
                         {
-                            Echo($"Invalid name for drone_tag {drone_tag.Replace("[", "[[").Replace("]", "]]")} Please add drone tag to antenna e.g. '1:PSMD:SWRM_D', '<drone_id>:<prospector_drone_name>:<drone_group_tag>'");
+                            sbtexttemp.AppendLine($"Invalid name for drone_tag {drone_tag.Replace("[", "[[").Replace("]", "]]")} Please add drone tag to antenna e.g. '1:PSMD:SWRM_D', '<drone_id>:<prospector_drone_name>:<drone_group_tag>'");
                             return;
                         }
                         n = $"Antenna {(i + 1)}";
@@ -482,10 +483,10 @@ namespace IngameScript
             if (display_tag_main.Count > 0)
             {
                 display_surface_1 = ((IMyTextSurfaceProvider)display_tag_main[0]).GetSurface(lcd_display_index);
-                Echo($"LCD display: '{lcd_display_name.Replace("[", "[[").Replace("]", "]]")}' found.");
+                sbtexttemp.AppendLine($"LCD display: '{lcd_display_name.Replace("[", "[[").Replace("]", "]]")}' found.");
             }
             setup_complete = true;
-            Echo("Setup complete!");
+            sbtexttemp.AppendLine("Setup complete!");
         }
         private void ManageCommunications()
         {
@@ -617,7 +618,7 @@ namespace IngameScript
                 lcd_display_tag = "D1";
                 StoreDroneConfigData(block);
             }
-            Echo($"Drone info: {scout_tag.Replace("[", "[[").Replace("]", "]]")}:{drone_tag.Replace("[", "[[").Replace("]", "]]")}");
+            sbtexttemp.AppendLine($"Drone info: {scout_tag.Replace("[", "[[").Replace("]", "]]")}:{drone_tag.Replace("[", "[[").Replace("]", "]]")}");
             drone_id_name = "[" + scout_tag + " " + drone_id + "]";
             tx_channel = drone_tag + " " + prospC;
             rx_channel = "[" + drone_tag + "]" + " " + syncC;
@@ -676,7 +677,7 @@ namespace IngameScript
                     {
                         raycast_scan_distance = 32.0;
                     }
-                    Echo("Storage Loaded");
+                    sbtexttemp.AppendLine("Storage Loaded");
                 }
 
             }
@@ -686,7 +687,7 @@ namespace IngameScript
         {
             if (antenna_tag.Count <= 0 || antenna_tag[0] == null)
             {
-                Echo($"Antenna with tag: '{drone_id_name.Replace("[", "[[").Replace("]", "]]")}' not found.");
+                sbtexttemp.AppendLine($"Antenna with tag: '{drone_id_name.Replace("[", "[[").Replace("]", "]]")}' not found.");
                 setup_complete = false;
                 return;
             }
@@ -695,7 +696,7 @@ namespace IngameScript
 
             if (display_tag_main.Count <= 0 || ((IMyTextSurfaceProvider)display_tag_main[0]).GetSurface(lcd_display_index) == null)
             {
-                Echo($"LCD display: '{lcd_display_tag.Replace("[", "[[").Replace("]", "]]")}' not found.");
+                sbtexttemp.AppendLine($"LCD display: '{lcd_display_tag.Replace("[", "[[").Replace("]", "]]")}' not found.");
                 setup_complete = false;
                 //return;
             }
@@ -704,7 +705,7 @@ namespace IngameScript
             //find remote control, end if not found
             if (remote_control_tag.Count <= 0 || remote_control_tag[0] == null)
             {
-                Echo($"Remote control with tag: '{drone_id_name.Replace("[", "[[").Replace("]", "]]")}' not found.");
+                sbtexttemp.AppendLine($"Remote control with tag: '{drone_id_name.Replace("[", "[[").Replace("]", "]]")}' not found.");
                 setup_complete = false;
                 return;
             }
@@ -715,7 +716,7 @@ namespace IngameScript
             //find camera, end if not found
             if (camera_scan.Count <= 0 || camera_scan[0] == null)
             {
-                Echo($"Camera with tag: '{scan_camera.Replace("[", "[[").Replace("]", "]]")}' not found.");
+                sbtexttemp.AppendLine($"Camera with tag: '{scan_camera.Replace("[", "[[").Replace("]", "]]")}' not found.");
                 setup_complete = false;
                 return;
             }
@@ -734,7 +735,7 @@ namespace IngameScript
             //find lights, end if not found
             if (lighting_target_aquired.Count <= 0 || lighting_target_aquired[0] == null)
             {
-                Echo($"dock indicator light with tag: '{light_target_tag.Replace("[", "[[").Replace("]", "]]")}' not found.");
+                sbtexttemp.AppendLine($"dock indicator light with tag: '{light_target_tag.Replace("[", "[[").Replace("]", "]]")}' not found.");
                 setup_complete = false;
                 return;
             }
@@ -742,7 +743,7 @@ namespace IngameScript
 
             if (lighting_target_transmit.Count <= 0 || lighting_target_transmit[0] == null)
             {
-                Echo($"undock indicator light with tag: '{light_transmit_tag.Replace("[", "[[").Replace("]", "]]")}' not found.");
+                sbtexttemp.AppendLine($"undock indicator light with tag: '{light_transmit_tag.Replace("[", "[[").Replace("]", "]]")}' not found.");
                 setup_complete = false;
                 return;
             }
@@ -752,7 +753,7 @@ namespace IngameScript
 
             if (sensor_tag.Count <= 0 || sensor_tag[0] == null)
             {
-                Echo($"Sensor with tag: '{scan_sensor.Replace("[", "[[").Replace("]", "]]")}' not found. Please add tag to scanning sensor");
+                sbtexttemp.AppendLine($"Sensor with tag: '{scan_sensor.Replace("[", "[[").Replace("]", "]]")}' not found. Please add tag to scanning sensor");
                 setup_complete = false;
                 return;
             }
@@ -761,14 +762,14 @@ namespace IngameScript
             //find remote control, end if not found
             if (display_tag_main.Count <= 0 || display_tag_main[0] == null)
             {
-                Echo($"LCD display with tag: '{lcd_display_name.Replace("[", "[[").Replace("]", "]]")}' not found.");
+                sbtexttemp.AppendLine($"LCD display with tag: '{lcd_display_name.Replace("[", "[[").Replace("]", "]]")}' not found.");
                 return;
             }
 
             //find batteries, end if not found
             if (batteries_tag.Count <= 0 || batteries_tag[0] == null)
             {
-                Echo($"Batteries with tag: '{drone_id_name.Replace("[", "[[").Replace("]", "]]")}' not found.");
+                sbtexttemp.AppendLine($"Batteries with tag: '{drone_id_name.Replace("[", "[[").Replace("]", "]]")}' not found.");
                 setup_complete = false;
                 return;
             }
@@ -793,7 +794,7 @@ namespace IngameScript
 
             if (!setup_complete)
             {
-                Echo($"Setup incomplete. Terminating");
+                sbtexttemp.AppendLine($"Setup incomplete. Terminating");
                 return;
             }
             ManageCommunications();
@@ -839,7 +840,7 @@ namespace IngameScript
 
 
             //Logic Start
-            Echo($"GMDP {version} Running {icon}");
+            sbtexttemp.AppendLine($"GMDP {version} Running {icon}");
 
 
             if (sensor_actual.DetectAsteroids == false)
@@ -1132,9 +1133,9 @@ namespace IngameScript
             if (argument.Contains(reset_cmd) || command_reset)
             {
                 scan_complete = false;
-                Echo("Scan reset.");
+                sbtexttemp.AppendLine("Scan reset.");
                 transmit_complete = false;
-                Echo("Transmission reset.");
+                sbtexttemp.AppendLine("Transmission reset.");
                 target_aquired_light_actual.Enabled = false;
                 target_transmit_light_actual.Enabled = false;
                 asteroidsDetected = false;
@@ -1150,7 +1151,7 @@ namespace IngameScript
                     MyDetectedEntityInfo hitinfocamera = camera_actual.Raycast(raycast_scan_distance);
                     if (hitinfocamera.IsEmpty())
                     {
-                        Echo($"Mining surface not found within: '{raycast_scan_distance}'m.");
+                        sbtexttemp.AppendLine($"Mining surface not found within: '{raycast_scan_distance}'m.");
                         surface_coords.X = Math.Round(remote_control_actual.GetPosition().X, 2);
                         surface_coords.Z = Math.Round(remote_control_actual.GetPosition().Y, 2);
                         surface_coords.Y = Math.Round(remote_control_actual.GetPosition().Z, 2);
@@ -1160,7 +1161,7 @@ namespace IngameScript
                     if (!hitinfocamera.IsEmpty())
                     {
                         distance_scan = (hitinfocamera.HitPosition.Value - camera_actual.GetPosition()).Length();
-                        Echo($"Surface found'{distance_scan}'m.");
+                        sbtexttemp.AppendLine($"Surface found'{distance_scan}'m.");
                         surface_coords.X = Math.Round(hitinfocamera.HitPosition.Value.X, 2);
                         surface_coords.Y = Math.Round(hitinfocamera.HitPosition.Value.Y, 2);
                         surface_coords.Z = Math.Round(hitinfocamera.HitPosition.Value.Z, 2);
@@ -1175,7 +1176,7 @@ namespace IngameScript
                         if (sensor_actual.IsActive == true && enable_asteroid_detection == true)
                         {
                             asteroidsDetected = true;
-                            Echo("Asteroid detected");
+                            sbtexttemp.AppendLine("Asteroid detected");
                         }
 
                         if (sensor_actual.IsActive == false && enable_asteroid_detection == true || enable_asteroid_detection == false)
@@ -1191,7 +1192,7 @@ namespace IngameScript
                             gravity_coords.Y = Math.Round(surface_coords.Y + GravitMagic.Y, 2);
                             gravity_coords.X = Math.Round(surface_coords.X + GravitMagic.X, 2);
                             gravity_coords.Z = Math.Round(surface_coords.Z + GravitMagic.Z, 2);
-                            Echo("align to gravity");
+                            sbtexttemp.AppendLine("align to gravity");
                         }
 
                         if (asteroidsDetected && !free_form)
@@ -1199,7 +1200,7 @@ namespace IngameScript
                             //set vector to asteroid                           
                             asteroid_coords = sensor_actual.LastDetectedEntity.BoundingBox.Center;
                             TargetVec = Vector3D.Normalize(new Vector3D(-(asteroid_coords - surface_coords)));
-                            Echo("align to asteroid");
+                            sbtexttemp.AppendLine("align to asteroid");
                         }
 
                         if (free_form)
@@ -1207,7 +1208,7 @@ namespace IngameScript
                             //set vector to asteroid                           
                             camera_coords = camera_actual.GetPosition();
                             TargetVec = Vector3D.Normalize(new Vector3D(-(surface_coords - camera_coords)));
-                            Echo("align to scan vector");
+                            sbtexttemp.AppendLine("align to scan vector");
                         }
 
                         if (free_form)
@@ -1222,8 +1223,8 @@ namespace IngameScript
                         target_coords.Y = Math.Round(surface_coords.Y + targetpositiont.Y, 2);
                         target_coords.X = Math.Round(surface_coords.X + targetpositiont.X, 2);
                         target_coords.Z = Math.Round(surface_coords.Z + targetpositiont.Z, 2);
-                        Echo("Navigation point calculated");
-                        Echo("Coordinates ready.");
+                        sbtexttemp.AppendLine("Navigation point calculated");
+                        sbtexttemp.AppendLine("Coordinates ready.");
 
                         scan_complete = true;
 
@@ -1236,7 +1237,7 @@ namespace IngameScript
 
                 if (scan_complete == false)
                 {
-                    Echo("Please initiate scan before sending coordinates to controller");
+                    sbtexttemp.AppendLine("Please initiate scan before sending coordinates to controller");
                     transmit_complete = false;
                     target_aquired_light_actual.Enabled = false;
                     target_transmit_light_actual.Enabled = false;
@@ -1423,43 +1424,43 @@ namespace IngameScript
                 //build data string to for mining controller and transmit via IGC
                 transmit_complete = true;
                 target_transmit_light_actual.Enabled = true;
-                Echo("Data sent.");
+                sbtexttemp.AppendLine("Data sent.");
 
             }
 
-            Echo($"Channel: {tx_channel.Replace("[", "[[").Replace("]", "]]")}");
-            Echo("Target: " + surface_found);
-            Echo("TX: " + target_coords.X + " TY: " + target_coords.Y + " TZ: " + target_coords.Z + " SafeD: " + safe_position + "m");
-            Echo("Free scan: " + free_form);
-            Echo("Asteroid detection: " + enable_asteroid_detection);
-            Echo("Asteroid: " + asteroidsDetected);
-            Echo("--------");
-            Echo("PB Arguments:");
-            Echo("========");
-            Echo($"Increase selection menu = {up_val}");
-            Echo($"Decrease selection menu = {down_val}");
-            Echo($"Menu item = {menuitem_select}");
-            Echo($"Iteration value = {iterate_cmd}");
-            Echo($"Confirm = {confirm_cmd}");
-            Echo("--------");
-            Echo($"Direct commands:");
-            Echo("--------");
-            Echo($"Scan = {scan_cmd}");
-            Echo($"Reset = {reset_cmd}");
-            Echo($"Send  = {send_cmd}");
-            Echo($"Asteroid EN = {ast_en_cmd}");
-            Echo($"Asteroid DIS = {ast_dis_cmd}");
-            Echo($"Reset send = {retry_send_cmd}");
-            Echo($"Free form EN = {free_form_en_cmd}");
-            Echo($"Free form DIS = {free_form_dis_cmd}");
+            sbtexttemp.AppendLine($"Channel: {tx_channel.Replace("[", "[[").Replace("]", "]]")}");
+            sbtexttemp.AppendLine("Target: " + surface_found);
+            sbtexttemp.AppendLine("TX: " + target_coords.X + " TY: " + target_coords.Y + " TZ: " + target_coords.Z + " SafeD: " + safe_position + "m");
+            sbtexttemp.AppendLine("Free scan: " + free_form);
+            sbtexttemp.AppendLine("Asteroid detection: " + enable_asteroid_detection);
+            sbtexttemp.AppendLine("Asteroid: " + asteroidsDetected);
+            sbtexttemp.AppendLine("--------");
+            sbtexttemp.AppendLine("PB Arguments:");
+            sbtexttemp.AppendLine("========");
+            sbtexttemp.AppendLine($"Increase selection menu = {up_val}");
+            sbtexttemp.AppendLine($"Decrease selection menu = {down_val}");
+            sbtexttemp.AppendLine($"Menu item = {menuitem_select}");
+            sbtexttemp.AppendLine($"Iteration value = {iterate_cmd}");
+            sbtexttemp.AppendLine($"Confirm = {confirm_cmd}");
+            sbtexttemp.AppendLine("--------");
+            sbtexttemp.AppendLine($"Direct commands:");
+            sbtexttemp.AppendLine("--------");
+            sbtexttemp.AppendLine($"Scan = {scan_cmd}");
+            sbtexttemp.AppendLine($"Reset = {reset_cmd}");
+            sbtexttemp.AppendLine($"Send  = {send_cmd}");
+            sbtexttemp.AppendLine($"Asteroid EN = {ast_en_cmd}");
+            sbtexttemp.AppendLine($"Asteroid DIS = {ast_dis_cmd}");
+            sbtexttemp.AppendLine($"Reset send = {retry_send_cmd}");
+            sbtexttemp.AppendLine($"Free form EN = {free_form_en_cmd}");
+            sbtexttemp.AppendLine($"Free form DIS = {free_form_dis_cmd}");
 
             if (asteroidsDetected == true)
             {
-                Echo("AX: " + Math.Round(asteroid_coords.X, 2) + " AY: " + Math.Round(asteroid_coords.Y, 2) + " AZ: " + Math.Round(asteroid_coords.Z, 2));
+                sbtexttemp.AppendLine("AX: " + Math.Round(asteroid_coords.X, 2) + " AY: " + Math.Round(asteroid_coords.Y, 2) + " AZ: " + Math.Round(asteroid_coords.Z, 2));
             }
             if (free_form == true && scan_complete)
             {
-                Echo("FX: " + Math.Round(free_centre_target_coords.X, 2) + " FY: " + Math.Round(free_centre_target_coords.Y, 2) + " FZ: " + Math.Round(free_centre_target_coords.Z, 2));
+                sbtexttemp.AppendLine("FX: " + Math.Round(free_centre_target_coords.X, 2) + " FY: " + Math.Round(free_centre_target_coords.Y, 2) + " FZ: " + Math.Round(free_centre_target_coords.Z, 2));
             }
 
             StringBuilder display_string = new StringBuilder();
@@ -1523,95 +1524,10 @@ namespace IngameScript
             {
                 display_surface_1.WriteText(display_string);
             }
+            Echo(sbtexttemp.ToString());
+            sbtexttemp.Clear();
             state_shifter();
         } //end void main
-
-        public void drone_custom_data_check(string custominfo, int index)
-        {
-            Echo("Checking for drone config information..");
-            String[] temp_id = custominfo.Split(':');
-            Echo($"{temp_id.Length}");
-
-            if (temp_id.Length > 0)
-            {
-                if (temp_id[0] != null)
-                {
-                    if (int.TryParse(temp_id[0], out temp_id_num))
-                    {
-                        int.TryParse(temp_id[0], out temp_id_num);
-                    }
-                    else
-                    {
-                        temp_id_num = drone_id;
-                        drone_id = temp_id_num;
-                        Echo($"Resorting to default ID#.{drone_id}");
-                    }
-                }
-            }
-            else
-            {
-                temp_id_num = drone_id;
-                Echo($"Resorting to default ID#.{drone_id}");
-            }
-            if (temp_id.Length > 1)
-            {
-                if (temp_id[1] != null)
-                {
-                    temp_id_scout = temp_id[1];
-                    scout_tag = temp_id_scout;
-                    if (temp_id_scout == "" || temp_id_scout == null)
-                    {
-                        temp_id_scout = scout_tag;
-                        Echo($"Resorting to default scout tag {scout_tag}");
-                    }
-                }
-            }
-            else
-            {
-                temp_id_scout = scout_tag;
-            }
-            if (temp_id.Length > 2)
-            {
-                if (temp_id[2] != null)
-                {
-                    temp_id_name = temp_id[2];
-                    drone_tag = temp_id_name;
-                    if (temp_id_name == "" || temp_id_name == null)
-                    {
-                        temp_id_name = drone_tag;
-                        Echo($"Resorting to default drone tag {drone_tag}.");
-                    }
-                }
-            }
-            else
-            {
-                temp_id_name = drone_tag;
-            }
-
-            if (temp_id.Length == 0)
-            {
-                temp_id_scout = scout_tag;
-                temp_id_name = drone_tag;
-                temp_id_num = drone_id;
-                Echo($"Resorting to default config {temp_id_name} {temp_id_scout}.");
-            }
-
-
-
-            if (antenna_all[index] != null)
-            {
-                antenna_all[index].CustomData = $"{drone_id}:{scout_tag}:{drone_tag}";
-            }
-            Echo($"Drone info: {scout_tag}:{drone_tag}");
-            drone_id_name = "[" + scout_tag + " " + drone_id + "]";
-            tx_channel = drone_tag + " " + prospC;
-            rx_channel = "[" + drone_tag + "]" + " " + syncC;
-            light_transmit_tag = "[" + scout_tag + " " + drone_id + " " + txl + "]";
-            light_target_tag = "[" + scout_tag + " " + drone_id + " " + tgt + "]";
-            lcd_display_name = "[" + scout_tag + " " + drone_id + " " + lcd_display_tag + "]";
-            Me.CustomName = $"GMDP Programmable Block {drone_id_name} [{drone_tag}] {prospC}";
-            Me.CubeGrid.CustomName = $"{drone_id_name} {prospC} drone";
-        }
 
         void StoreJobData(IMyTerminalBlock block, string input)
         {
