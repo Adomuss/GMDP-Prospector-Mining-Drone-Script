@@ -61,12 +61,12 @@ namespace IngameScript
 
         int lcd_display_index = 0; //used for devices with multiple screen panels (0+) 
         #endregion
-        string version = "V0.506B";
+        string version = "V0.600B";
         string drone_id_name = "";
         string tx_channel = "";
         string rx_channel = "";
         IMyBroadcastListener listensync;
-        List<MyIGCMessage> syncMessagesBuffer;
+        List<MyIGCMessage> syncMessagesBuffer = new List<MyIGCMessage>();
         string light_transmit_tag = "";
         string light_target_tag = "";
         string lcd_display_name = "";
@@ -125,28 +125,28 @@ namespace IngameScript
         Vector3D gravity;
         Vector3D TargetVec;
 
-        List<IMyRadioAntenna> antenna_all;
-        List<IMyRadioAntenna> antenna_tag;
-        List<IMyBeacon> beacons_all;
-        List<IMyBeacon> beacons_tag;
-        List<IMyBatteryBlock> batteries_all;
-        List<IMyBatteryBlock> batteries_tag;
-        List<IMyRemoteControl> remote_control_all;
-        List<IMyRemoteControl> remote_control_tag;
-        List<IMySensorBlock> sensor_all;
-        List<IMySensorBlock> sensor_tag;
-        List<IMyCameraBlock> camera_all;
-        List<IMyCameraBlock> camera_tag;
-        List<IMyCameraBlock> camera_scan;
-        List<IMyLightingBlock> lighting_all;
-        List<IMyLightingBlock> lighting_target_aquired;
-        List<IMyLightingBlock> lighting_target_transmit;
-        List<IMyThrust> thrust_all;
-        List<IMyThrust> thrust_tag;
-        List<IMyShipConnector> connector_all;
-        List<IMyShipConnector> connector_tag;
-        List<IMyTerminalBlock> display_all;
-        List<IMyTerminalBlock> display_tag_main;
+        List<IMyRadioAntenna> antenna_all = new List<IMyRadioAntenna>();
+        List<IMyRadioAntenna> antenna_tag = new List<IMyRadioAntenna>();
+        List<IMyBeacon> beacons_all = new List<IMyBeacon>();
+        List<IMyBeacon> beacons_tag = new List<IMyBeacon>();
+        List<IMyBatteryBlock> batteries_all = new List<IMyBatteryBlock>();
+        List<IMyBatteryBlock> batteries_tag = new List<IMyBatteryBlock>();
+        List<IMyRemoteControl> remote_control_all = new List<IMyRemoteControl>();
+        List<IMyRemoteControl> remote_control_tag = new List<IMyRemoteControl>();
+        List<IMySensorBlock> sensor_all = new List<IMySensorBlock>();
+        List<IMySensorBlock> sensor_tag = new List<IMySensorBlock>();
+        List<IMyCameraBlock> camera_all = new List<IMyCameraBlock>();
+        List<IMyCameraBlock> camera_tag = new List<IMyCameraBlock>();
+        List<IMyCameraBlock> camera_scan = new List<IMyCameraBlock>();
+        List<IMyLightingBlock> lighting_all = new List<IMyLightingBlock>();
+        List<IMyLightingBlock> lighting_target_aquired = new List<IMyLightingBlock>();
+        List<IMyLightingBlock> lighting_target_transmit = new List<IMyLightingBlock>();
+        List<IMyThrust> thrust_all = new List<IMyThrust>();
+        List<IMyThrust> thrust_tag = new List<IMyThrust>();
+        List<IMyShipConnector> connector_all = new List<IMyShipConnector>();
+        List<IMyShipConnector> connector_tag = new List<IMyShipConnector>();
+        List<IMyTerminalBlock> display_all = new List<IMyTerminalBlock>();
+        List<IMyTerminalBlock> display_tag_main = new List<IMyTerminalBlock>();
         IMyTextSurface display_surface_1;
 
         MyIni _Storage = new MyIni();
@@ -183,11 +183,21 @@ namespace IngameScript
         public void Save()
         {
             _Storage.Clear();
-            _Storage.Set("State", "Safedistance", safe_position);
-            _Storage.Set("State", "freecenterposition", free_center_position);
-            _Storage.Set("State", "scantype", scan_type);
-            _Storage.Set("State", "raycast", raycast_scan_distance);
-            Storage = _Storage.ToString();
+            if (_Storage.TryParse(Storage.ToString()))
+            {
+                _Storage.Set("State", "Safedistance", safe_position);
+                _Storage.Set("State", "freecenterposition", free_center_position);
+                _Storage.Set("State", "scantype", scan_type);
+                _Storage.Set("State", "raycast", raycast_scan_distance);
+            }
+            else
+            {
+                _Storage.Set("State", "Safedistance", safe_position);
+                _Storage.Set("State", "freecenterposition", free_center_position);
+                _Storage.Set("State", "scantype", scan_type);
+                _Storage.Set("State", "raycast", raycast_scan_distance);
+            }
+                Storage = _Storage.ToString();
             _Storage.Clear();
         }
 
@@ -215,29 +225,29 @@ namespace IngameScript
             light_transmit_tag = "[" + scout_tag + " " + drone_id + " " + txl + "]";
             light_target_tag = "[" + scout_tag + " " + drone_id + " " + tgt + "]";
             lcd_display_name = "[" + scout_tag + " " + drone_id + " " + lcd_display_tag + "]";
-            antenna_all = new List<IMyRadioAntenna>();
-            antenna_tag = new List<IMyRadioAntenna>();
-            beacons_all = new List<IMyBeacon>();
-            beacons_tag = new List<IMyBeacon>();
-            batteries_all = new List<IMyBatteryBlock>();
-            batteries_tag = new List<IMyBatteryBlock>();
-            remote_control_all = new List<IMyRemoteControl>();
-            remote_control_tag = new List<IMyRemoteControl>();
-            sensor_all = new List<IMySensorBlock>();
-            sensor_tag = new List<IMySensorBlock>();
-            camera_all = new List<IMyCameraBlock>();
-            camera_tag = new List<IMyCameraBlock>();
-            camera_scan = new List<IMyCameraBlock>();
-            lighting_all = new List<IMyLightingBlock>();
-            lighting_target_aquired = new List<IMyLightingBlock>();
-            lighting_target_transmit = new List<IMyLightingBlock>();
-            display_all = new List<IMyTerminalBlock>();
-            display_tag_main = new List<IMyTerminalBlock>();
-            thrust_all = new List<IMyThrust>();
-            thrust_tag = new List<IMyThrust>();
-            connector_all = new List<IMyShipConnector>();
-            connector_tag = new List<IMyShipConnector>();
-            syncMessagesBuffer = new List<MyIGCMessage>();
+            antenna_all.Clear();
+            antenna_tag.Clear();
+            beacons_all.Clear();
+            beacons_tag.Clear();
+            batteries_all.Clear();
+            batteries_tag.Clear();
+            remote_control_all.Clear();
+            remote_control_tag.Clear();
+            sensor_all.Clear();
+            sensor_tag.Clear();
+            camera_all.Clear();
+            camera_tag.Clear();
+            camera_scan.Clear();
+            lighting_all.Clear();
+            lighting_target_aquired.Clear();
+            lighting_target_transmit.Clear();
+            display_all.Clear();
+            display_tag_main.Clear();
+            thrust_all.Clear();
+            thrust_tag.Clear();
+            connector_all.Clear();
+            connector_tag.Clear();
+            syncMessagesBuffer.Clear();
 
             string n = "";
             //find antennas with tag
@@ -252,7 +262,7 @@ namespace IngameScript
                         LoadDroneConfigData(checker, antenna_all[i]);
                         if (string.IsNullOrEmpty(drone_tag) || string.IsNullOrWhiteSpace(drone_tag))
                         {
-                            sbtexttemp.AppendLine($"Invalid name for drone_tag {drone_tag.Replace("[", "[[").Replace("]", "]]")}. Please add drone tag to antenna e.g. '1:PSMD:SWRM_D', '<drone_id>:<prospector_drone_name>:<drone_group_tag>'");
+                            Echo($"Invalid name for drone_tag {drone_tag.Replace("[", "[[").Replace("]", "]]")}. Please add drone tag to antenna e.g. '1:PSMD:SWRM_D', '<drone_id>:<prospector_drone_name>:<drone_group_tag>'");
                             return;
                         }
                         n = $"Antenna {(i + 1)}";
@@ -265,7 +275,7 @@ namespace IngameScript
                         LoadDroneConfigData(checker, antenna_all[i]);
                         if (drone_tag == "" || drone_tag == null)
                         {
-                            sbtexttemp.AppendLine($"Invalid name for drone_tag {drone_tag.Replace("[", "[[").Replace("]", "]]")} Please add drone tag to antenna e.g. '1:PSMD:SWRM_D', '<drone_id>:<prospector_drone_name>:<drone_group_tag>'");
+                            Echo($"Invalid name for drone_tag {drone_tag.Replace("[", "[[").Replace("]", "]]")} Please add drone tag to antenna e.g. '1:PSMD:SWRM_D', '<drone_id>:<prospector_drone_name>:<drone_group_tag>'");
                             return;
                         }
                         n = $"Antenna {(i + 1)}";
@@ -553,11 +563,21 @@ namespace IngameScript
         public void StoreDroneConfigData(IMyRadioAntenna block)
         {
             _DroneConf.Clear();
-            _DroneConf.Set("droneconfig", "drone tag", drone_tag);
-            _DroneConf.Set("droneconfig", "scout tag", scout_tag);
-            _DroneConf.Set("droneconfig", "drone id num", drone_id);
-            _DroneConf.Set("droneconfig", "lcd display tag", lcd_display_tag);
-            block.CustomData = _DroneConf.ToString();
+            if (_DroneConf.TryParse(block.CustomData.ToString()))
+            {
+                _DroneConf.Set("droneconfig", "drone tag", drone_tag);
+                _DroneConf.Set("droneconfig", "scout tag", scout_tag);
+                _DroneConf.Set("droneconfig", "drone id num", drone_id);
+                _DroneConf.Set("droneconfig", "lcd display tag", lcd_display_tag);
+            }
+            else
+            {
+                _DroneConf.Set("droneconfig", "drone tag", drone_tag);
+                _DroneConf.Set("droneconfig", "scout tag", scout_tag);
+                _DroneConf.Set("droneconfig", "drone id num", drone_id);
+                _DroneConf.Set("droneconfig", "lcd display tag", lcd_display_tag);
+            }
+                block.CustomData = _DroneConf.ToString();
             _DroneConf.Clear();
 
         }
@@ -618,7 +638,7 @@ namespace IngameScript
                 lcd_display_tag = "D1";
                 StoreDroneConfigData(block);
             }
-            sbtexttemp.AppendLine($"Drone info: {scout_tag.Replace("[", "[[").Replace("]", "]]")}:{drone_tag.Replace("[", "[[").Replace("]", "]]")}");
+            Echo($"Drone info: {scout_tag.Replace("[", "[[").Replace("]", "]]")}:{drone_tag.Replace("[", "[[").Replace("]", "]]")}");
             drone_id_name = "[" + scout_tag + " " + drone_id + "]";
             tx_channel = drone_tag + " " + prospC;
             rx_channel = "[" + drone_tag + "]" + " " + syncC;
@@ -687,7 +707,7 @@ namespace IngameScript
         {
             if (antenna_tag.Count <= 0 || antenna_tag[0] == null)
             {
-                sbtexttemp.AppendLine($"Antenna with tag: '{drone_id_name.Replace("[", "[[").Replace("]", "]]")}' not found.");
+                Echo($"Antenna with tag: '{drone_id_name.Replace("[", "[[").Replace("]", "]]")}' not found.");
                 setup_complete = false;
                 return;
             }
@@ -696,7 +716,7 @@ namespace IngameScript
 
             if (display_tag_main.Count <= 0 || ((IMyTextSurfaceProvider)display_tag_main[0]).GetSurface(lcd_display_index) == null)
             {
-                sbtexttemp.AppendLine($"LCD display: '{lcd_display_tag.Replace("[", "[[").Replace("]", "]]")}' not found.");
+                Echo($"LCD display: '{lcd_display_tag.Replace("[", "[[").Replace("]", "]]")}' not found.");
                 setup_complete = false;
                 //return;
             }
@@ -705,7 +725,7 @@ namespace IngameScript
             //find remote control, end if not found
             if (remote_control_tag.Count <= 0 || remote_control_tag[0] == null)
             {
-                sbtexttemp.AppendLine($"Remote control with tag: '{drone_id_name.Replace("[", "[[").Replace("]", "]]")}' not found.");
+                Echo($"Remote control with tag: '{drone_id_name.Replace("[", "[[").Replace("]", "]]")}' not found.");
                 setup_complete = false;
                 return;
             }
@@ -716,7 +736,7 @@ namespace IngameScript
             //find camera, end if not found
             if (camera_scan.Count <= 0 || camera_scan[0] == null)
             {
-                sbtexttemp.AppendLine($"Camera with tag: '{scan_camera.Replace("[", "[[").Replace("]", "]]")}' not found.");
+                Echo($"Camera with tag: '{scan_camera.Replace("[", "[[").Replace("]", "]]")}' not found.");
                 setup_complete = false;
                 return;
             }
@@ -735,7 +755,7 @@ namespace IngameScript
             //find lights, end if not found
             if (lighting_target_aquired.Count <= 0 || lighting_target_aquired[0] == null)
             {
-                sbtexttemp.AppendLine($"dock indicator light with tag: '{light_target_tag.Replace("[", "[[").Replace("]", "]]")}' not found.");
+                Echo($"dock indicator light with tag: '{light_target_tag.Replace("[", "[[").Replace("]", "]]")}' not found.");
                 setup_complete = false;
                 return;
             }
@@ -743,7 +763,7 @@ namespace IngameScript
 
             if (lighting_target_transmit.Count <= 0 || lighting_target_transmit[0] == null)
             {
-                sbtexttemp.AppendLine($"undock indicator light with tag: '{light_transmit_tag.Replace("[", "[[").Replace("]", "]]")}' not found.");
+                Echo($"undock indicator light with tag: '{light_transmit_tag.Replace("[", "[[").Replace("]", "]]")}' not found.");
                 setup_complete = false;
                 return;
             }
@@ -753,7 +773,7 @@ namespace IngameScript
 
             if (sensor_tag.Count <= 0 || sensor_tag[0] == null)
             {
-                sbtexttemp.AppendLine($"Sensor with tag: '{scan_sensor.Replace("[", "[[").Replace("]", "]]")}' not found. Please add tag to scanning sensor");
+                Echo($"Sensor with tag: '{scan_sensor.Replace("[", "[[").Replace("]", "]]")}' not found. Please add tag to scanning sensor");
                 setup_complete = false;
                 return;
             }
@@ -762,14 +782,14 @@ namespace IngameScript
             //find remote control, end if not found
             if (display_tag_main.Count <= 0 || display_tag_main[0] == null)
             {
-                sbtexttemp.AppendLine($"LCD display with tag: '{lcd_display_name.Replace("[", "[[").Replace("]", "]]")}' not found.");
+                Echo($"LCD display with tag: '{lcd_display_name.Replace("[", "[[").Replace("]", "]]")}' not found.");
                 return;
             }
 
             //find batteries, end if not found
             if (batteries_tag.Count <= 0 || batteries_tag[0] == null)
             {
-                sbtexttemp.AppendLine($"Batteries with tag: '{drone_id_name.Replace("[", "[[").Replace("]", "]]")}' not found.");
+                Echo($"Batteries with tag: '{drone_id_name.Replace("[", "[[").Replace("]", "]]")}' not found.");
                 setup_complete = false;
                 return;
             }
@@ -794,7 +814,7 @@ namespace IngameScript
 
             if (!setup_complete)
             {
-                sbtexttemp.AppendLine($"Setup incomplete. Terminating");
+                Echo($"Setup incomplete. Terminating");
                 return;
             }
             ManageCommunications();
@@ -1532,16 +1552,30 @@ namespace IngameScript
         void StoreJobData(IMyTerminalBlock block, string input)
         {
             _customDataStore.Clear();
-            _customDataStore.Set(gmdccategory, jobinfo, input);
-            block.CustomData = _customDataStore.ToString();
+            if (_customDataStore.TryParse(block.CustomData.ToString()))
+            {
+                _customDataStore.Set(gmdccategory, jobinfo, input);
+            }
+            else
+            {
+                _customDataStore.Set(gmdccategory, jobinfo, input);
+            }
+                block.CustomData = _customDataStore.ToString();
             _customDataStore.Clear();
         }
 
         void StoreRCJobData(IMyTerminalBlock block, string input)
         {
             _customDataStore.Clear();
-            _customDataStore.Set(gmdccategory, rcjobinfo, input);
-            block.CustomData = _customDataStore.ToString();
+            if (_customDataStore.TryParse(block.CustomData.ToString()))
+            {
+                _customDataStore.Set(gmdccategory, rcjobinfo, input);
+            }
+            else
+            {
+                _customDataStore.Set(gmdccategory, rcjobinfo, input);
+            }
+                block.CustomData = _customDataStore.ToString();
             _customDataStore.Clear();
         }
 
