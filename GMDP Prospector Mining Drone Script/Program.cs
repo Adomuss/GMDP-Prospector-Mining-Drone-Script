@@ -61,7 +61,7 @@ namespace IngameScript
 
         int lcd_display_index = 0; //used for devices with multiple screen panels (0+) 
         #endregion
-        string version = "V0.600B";
+        string version = "V0.606B";
         string drone_id_name = "";
         string tx_channel = "";
         string rx_channel = "";
@@ -180,6 +180,11 @@ namespace IngameScript
         //string prospectmain = "maindata";
         //string prospecttarget = "aligndata";
         StringBuilder sbtexttemp = new StringBuilder();
+        StringBuilder display_string = new StringBuilder();
+        StringBuilder comms_out = new StringBuilder();
+        StringBuilder copy_target = new StringBuilder();
+        StringBuilder copy_asteroid = new StringBuilder();
+        string tempDisplaytxchannel = "";
         public void Save()
         {
             _Storage.Clear();
@@ -495,6 +500,7 @@ namespace IngameScript
                 display_surface_1 = ((IMyTextSurfaceProvider)display_tag_main[0]).GetSurface(lcd_display_index);
                 sbtexttemp.AppendLine($"LCD display: '{lcd_display_name.Replace("[", "[[").Replace("]", "]]")}' found.");
             }
+            tempDisplaytxchannel= $"{tx_channel.Replace("[", "[[").Replace("]", "]]")}";
             setup_complete = true;
             sbtexttemp.AppendLine("Setup complete!");
         }
@@ -1318,11 +1324,10 @@ namespace IngameScript
             if (argument.Contains(send_cmd) && scan_complete == true && transmit_complete == false || command_send && scan_complete == true && transmit_complete == false)
             {
                 command_send = false;
-                StringBuilder comms_out = new StringBuilder();
-                StringBuilder copy_target = new StringBuilder();
-                StringBuilder copy_asteroid = new StringBuilder();
+
                 comms_out.Clear();
                 copy_target.Clear();
+                copy_asteroid.Clear();
                 comms_out.Append("GPS");
                 comms_out.Append(":");
                 comms_out.Append("TGT");
@@ -1440,6 +1445,7 @@ namespace IngameScript
                 }                
                 comms_out.Clear();
                 copy_target.Clear();
+                copy_asteroid.Clear();
                 IGC.SendBroadcastMessage(tx_channel, data_out, TransmissionDistance.TransmissionDistanceMax);
                 //build data string to for mining controller and transmit via IGC
                 transmit_complete = true;
@@ -1448,103 +1454,118 @@ namespace IngameScript
 
             }
 
-            sbtexttemp.AppendLine($"Channel: {tx_channel.Replace("[", "[[").Replace("]", "]]")}");
-            sbtexttemp.AppendLine("Target: " + surface_found);
-            sbtexttemp.AppendLine("TX: " + target_coords.X + " TY: " + target_coords.Y + " TZ: " + target_coords.Z + " SafeD: " + safe_position + "m");
-            sbtexttemp.AppendLine("Free scan: " + free_form);
-            sbtexttemp.AppendLine("Asteroid detection: " + enable_asteroid_detection);
-            sbtexttemp.AppendLine("Asteroid: " + asteroidsDetected);
-            sbtexttemp.AppendLine("--------");
-            sbtexttemp.AppendLine("PB Arguments:");
-            sbtexttemp.AppendLine("========");
-            sbtexttemp.AppendLine($"Increase selection menu = {up_val}");
-            sbtexttemp.AppendLine($"Decrease selection menu = {down_val}");
-            sbtexttemp.AppendLine($"Menu item = {menuitem_select}");
-            sbtexttemp.AppendLine($"Iteration value = {iterate_cmd}");
-            sbtexttemp.AppendLine($"Confirm = {confirm_cmd}");
-            sbtexttemp.AppendLine("--------");
-            sbtexttemp.AppendLine($"Direct commands:");
-            sbtexttemp.AppendLine("--------");
-            sbtexttemp.AppendLine($"Scan = {scan_cmd}");
-            sbtexttemp.AppendLine($"Reset = {reset_cmd}");
-            sbtexttemp.AppendLine($"Send  = {send_cmd}");
-            sbtexttemp.AppendLine($"Asteroid EN = {ast_en_cmd}");
-            sbtexttemp.AppendLine($"Asteroid DIS = {ast_dis_cmd}");
-            sbtexttemp.AppendLine($"Reset send = {retry_send_cmd}");
-            sbtexttemp.AppendLine($"Free form EN = {free_form_en_cmd}");
-            sbtexttemp.AppendLine($"Free form DIS = {free_form_dis_cmd}");
+            sbtexttemp.Append("Channel: ").Append(tempDisplaytxchannel).Append('\n');
+            sbtexttemp.Append("Target: ").Append(surface_found).Append('\n');
+            sbtexttemp.Append("TX: ").Append(target_coords.X).Append(" TY: ").Append(target_coords.Y)
+                      .Append(" TZ: ").Append(target_coords.Z).Append(" SafeD: ").Append(safe_position).Append("m\n");
+            sbtexttemp.Append("Free scan: ").Append(free_form).Append('\n');
+            sbtexttemp.Append("Asteroid detection: ").Append(enable_asteroid_detection).Append('\n');
+            sbtexttemp.Append("Asteroid: ").Append(asteroidsDetected).Append('\n');
+            sbtexttemp.Append("--------\n");
+            sbtexttemp.Append("PB Arguments:\n");
+            sbtexttemp.Append("========\n");
+            sbtexttemp.Append("Increase selection menu = ").Append(up_val).Append('\n');
+            sbtexttemp.Append("Decrease selection menu = ").Append(down_val).Append('\n');
+            sbtexttemp.Append("Menu item = ").Append(menuitem_select).Append('\n');
+            sbtexttemp.Append("Iteration value = ").Append(iterate_cmd).Append('\n');
+            sbtexttemp.Append("Confirm = ").Append(confirm_cmd).Append('\n');
+            sbtexttemp.Append("--------\n");
+            sbtexttemp.Append("Direct commands:\n");
+            sbtexttemp.Append("--------\n");
+            sbtexttemp.Append("Scan = ").Append(scan_cmd).Append('\n');
+            sbtexttemp.Append("Reset = ").Append(reset_cmd).Append('\n');
+            sbtexttemp.Append("Send = ").Append(send_cmd).Append('\n');
+            sbtexttemp.Append("Asteroid EN = ").Append(ast_en_cmd).Append('\n');
+            sbtexttemp.Append("Asteroid DIS = ").Append(ast_dis_cmd).Append('\n');
+            sbtexttemp.Append("Reset send = ").Append(retry_send_cmd).Append('\n');
+            sbtexttemp.Append("Free form EN = ").Append(free_form_en_cmd).Append('\n');
+            sbtexttemp.Append("Free form DIS = ").Append(free_form_dis_cmd).Append('\n');
 
-            if (asteroidsDetected == true)
+            if (asteroidsDetected)
             {
-                sbtexttemp.AppendLine("AX: " + Math.Round(asteroid_coords.X, 2) + " AY: " + Math.Round(asteroid_coords.Y, 2) + " AZ: " + Math.Round(asteroid_coords.Z, 2));
-            }
-            if (free_form == true && scan_complete)
-            {
-                sbtexttemp.AppendLine("FX: " + Math.Round(free_centre_target_coords.X, 2) + " FY: " + Math.Round(free_centre_target_coords.Y, 2) + " FZ: " + Math.Round(free_centre_target_coords.Z, 2));
+                sbtexttemp.Append("AX: ").Append(Math.Round(asteroid_coords.X, 2))
+                          .Append(" AY: ").Append(Math.Round(asteroid_coords.Y, 2))
+                          .Append(" AZ: ").Append(Math.Round(asteroid_coords.Z, 2))
+                          .Append('\n');
             }
 
-            StringBuilder display_string = new StringBuilder();
-            display_string.Append('\n');
-            display_string.Append($"GMDP {version} {scout_tag} Running {icon} ({Math.Round((double)percent_battery_power, 1)})%");
-            display_string.Append('\n');
-            display_string.Append($"Channel: {tx_channel}");
-            display_string.Append('\n');
-            display_string.Append('\n');
-            display_string.Append("Target: " + surface_found);
-            display_string.Append('\n');
-            display_string.Append("TX: " + target_coords.X + " TY: " + target_coords.Y + " TZ: " + target_coords.Z);
-            display_string.Append('\n');
-            display_string.Append('\n');
-            display_string.Append($"Adjust value: {iterate_val}");
-            display_string.Append('\n');
-            display_string.Append($"{sel_left_1} Surface distance: {safe_position}m {sel_right_1}");
-            display_string.Append('\n');
-            if (free_form)
-            {
-                display_string.Append($"{sel_left_2}Align Depth: {free_center_position}m {sel_right_2}");
-            }
-            display_string.Append('\n');
-            display_string.Append('\n');
-            display_string.Append($"{sel_left_3} Scan type: {scan_type_display} {sel_right_3}");
-
-            display_string.Append('\n');
-            display_string.Append($"{sel_left_4} Command: {command_display} {sel_right_4}");
-            display_string.Append('\n');
-            display_string.Append('\n');
-            display_string.Append('\n');
-            if (!enable_asteroid_detection)
-            {
-                display_string.Append("Asteroid detection: " + enable_asteroid_detection);
-                display_string.Append('\n');
-            }
-            if (free_form)
-            {
-                display_string.Append("Free scan: " + free_form);
-                display_string.Append('\n');
-            }
-            if (enable_asteroid_detection)
-            {
-                display_string.Append($"Asteroid: {asteroidsDetected} Sensor: {sensor_actual.IsActive}");
-                display_string.Append('\n');
-            }
-            display_string.Append("Scan: " + scan_complete);
-            display_string.Append('\n');
-            display_string.Append("Transmit: " + transmit_complete);
-            if (asteroidsDetected == true)
-            {
-                display_string.Append('\n');
-                display_string.Append("AX: " + Math.Round(asteroid_coords.X, 2) + " AY: " + Math.Round(asteroid_coords.Y, 2) + " AZ: " + Math.Round(asteroid_coords.Z, 2));
-            }
             if (free_form && scan_complete)
             {
-                display_string.Append('\n');
-                display_string.Append("FX: " + Math.Round(free_centre_target_coords.X, 2) + " FY: " + Math.Round(free_centre_target_coords.Y, 2) + " FZ: " + Math.Round(free_centre_target_coords.Z, 2));
+                sbtexttemp.Append("FX: ").Append(Math.Round(free_centre_target_coords.X, 2))
+                          .Append(" FY: ").Append(Math.Round(free_centre_target_coords.Y, 2))
+                          .Append(" FZ: ").Append(Math.Round(free_centre_target_coords.Z, 2))
+                          .Append('\n');
+            }
+
+            display_string.Clear();
+            display_string.Append('\n');
+            display_string.Append("GMDP ").Append(version).Append(" ").Append(scout_tag)
+                          .Append(" Running ").Append(icon).Append(" (")
+                          .Append(Math.Round((double)percent_battery_power, 1)).AppendLine(")%");
+
+            display_string.Append("Channel: ").AppendLine(tx_channel);
+            display_string.Append("\nTarget: ").Append(surface_found).Append("\n");
+
+            display_string.Append("TX: ").Append(target_coords.X)
+                          .Append(" TY: ").Append(target_coords.Y)
+                          .Append(" TZ: ").Append(target_coords.Z).Append("\n");
+
+            display_string.Append("\nAdjust value: ").Append(iterate_val).Append("\n");
+            display_string.Append(sel_left_1).Append(" Surface distance: ").Append(safe_position)
+                          .Append("m ").AppendLine(sel_right_1);
+
+            if (free_form)
+            {
+                display_string.Append(sel_left_2).Append("Align Depth: ").Append(free_center_position)
+                              .Append("m ").AppendLine(sel_right_2);
+            }
+
+            display_string.Append("\n").Append(sel_left_3).Append(" Scan type: ")
+                          .Append(scan_type_display).Append(" ").AppendLine(sel_right_3);
+
+            display_string.Append(sel_left_4).Append(" Command: ").Append(command_display)
+                          .Append(" ").AppendLine(sel_right_4);
+
+            display_string.Append("\n\n");
+
+            if (!enable_asteroid_detection)
+            {
+                display_string.Append("Asteroid detection: ").Append(enable_asteroid_detection).Append("\n");
+            }
+
+            if (free_form)
+            {
+                display_string.Append("Free scan: ").Append(free_form).Append("\n");
+            }
+
+            if (enable_asteroid_detection)
+            {
+                display_string.Append("Asteroid: ").Append(asteroidsDetected)
+                              .Append(" Sensor: ").Append(sensor_actual.IsActive).Append("\n");
+            }
+
+            display_string.Append("Scan: ").Append(scan_complete).Append("\n");
+            display_string.Append("Transmit: ").Append(transmit_complete).Append("\n");
+
+            if (asteroidsDetected)
+            {
+                display_string.Append("AX: ").Append(Math.Round(asteroid_coords.X, 2))
+                              .Append(" AY: ").Append(Math.Round(asteroid_coords.Y, 2))
+                              .Append(" AZ: ").Append(Math.Round(asteroid_coords.Z, 2)).Append("\n");
+            }
+
+            if (free_form && scan_complete)
+            {
+                display_string.Append("FX: ").Append(Math.Round(free_centre_target_coords.X, 2))
+                              .Append(" FY: ").Append(Math.Round(free_centre_target_coords.Y, 2))
+                              .Append(" FZ: ").Append(Math.Round(free_centre_target_coords.Z, 2)).Append("\n");
             }
             if (display_surface_1 != null)
             {
                 display_surface_1.WriteText(display_string);
             }
             Echo(sbtexttemp.ToString());
+            display_string.Clear();
             sbtexttemp.Clear();
             state_shifter();
         } //end void main
