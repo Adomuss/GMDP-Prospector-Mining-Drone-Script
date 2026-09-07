@@ -61,7 +61,7 @@ namespace IngameScript
 
         int lcd_display_index = 0; //used for devices with multiple screen panels (0+) 
         #endregion
-        string version = "V0.606B";
+        string version = "V0.607B";
         string drone_id_name = "";
         string tx_channel = "";
         string rx_channel = "";
@@ -104,6 +104,7 @@ namespace IngameScript
         bool command_send = false;
         bool command_reset = false;
         bool confirm_pressed = false;
+        int runTick = 0;
 
 
 
@@ -590,7 +591,7 @@ namespace IngameScript
         public void LoadDroneConfigData(string input, IMyRadioAntenna block)
         {
 
-            if (!string.IsNullOrEmpty(input) && !string.IsNullOrWhiteSpace(input))
+            if (!string.IsNullOrEmpty(input))
             {
                 if (_DroneConf.TryParse(input))
                 {
@@ -633,11 +634,17 @@ namespace IngameScript
                     {
                         lcd_display_tag = "D1";
                     }
+                    
+                }
+                else
+                {
                     StoreDroneConfigData(block);
+                    return;
                 }
             }
             else
             {
+                
                 drone_id = 1;
                 drone_tag = "SWRM_D";
                 scout_tag = " ";
@@ -802,6 +809,7 @@ namespace IngameScript
         }
         public void Main(string argument, UpdateType updateSource)
         {
+            runTick++;
             if (antenna_actual != null)
             {
                 if (scout_tag_changed)
@@ -1564,7 +1572,14 @@ namespace IngameScript
             {
                 display_surface_1.WriteText(display_string);
             }
-            Echo(sbtexttemp.ToString());
+            if (runTick % 6 == 0)
+            {
+                Echo(sbtexttemp.ToString());
+            }
+            if(runTick > 60)
+            {
+                runTick = 0;
+            }
             display_string.Clear();
             sbtexttemp.Clear();
             state_shifter();
