@@ -1572,7 +1572,7 @@ namespace IngameScript
             {
                 display_surface_1.WriteText(display_string);
             }
-            if (runTick % 6 == 0)
+            if (runTick % 10 == 0)
             {
                 Echo(sbtexttemp.ToString());
             }
